@@ -34,12 +34,17 @@ export default function SearchBox({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Show results when there are results and input is focused
+  // Realtime search with debounce
   useEffect(() => {
-    if (searchResults.length > 0 && isFocused) {
-      setShowResults(true);
-    }
-  }, [searchResults, isFocused]);
+    const debounceTimer = setTimeout(() => {
+      if (searchQuery.trim()) {
+        onSearch(searchQuery);
+        setShowResults(true);
+      }
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(debounceTimer);
+  }, [searchQuery, onSearch]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
