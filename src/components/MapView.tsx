@@ -1,7 +1,7 @@
 import { MapContainer, TileLayer, useMap, Marker, Popup, Circle } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
 import 'leaflet/dist/leaflet.css';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef, useCallback } from 'react';
 import L from 'leaflet';
 import type { Cafe } from '../services/cafeService';
 
@@ -116,13 +116,17 @@ const createUserIcon = () => {
   });
 };
 
-// Component to handle map movements
+// Component to handle map movements and popup sync
 function MapController({ 
   userLocation, 
-  selectedCafe 
+  selectedCafe,
+  showCafeDetail,
+  markerRefs 
 }: { 
   userLocation: [number, number] | null;
   selectedCafe: Cafe | null;
+  showCafeDetail: boolean;
+  markerRefs: React.MutableRefObject<Map<string, L.Marker>>;
 }) {
   const map = useMap();
   
@@ -147,6 +151,23 @@ function MapController({
     }
   }, [map, selectedCafe]);
 
+  // Sync popup visibility with cafe detail panel
+  useEffect(() => {
+    if (showCafeDetail && selectedCafe) {
+      // Open popup for selected cafe
+      const marker = markerRefs.current.get(selectedCafe.id);
+      if (marker) {
+        // Small delay to ensure map has panned
+        setTimeout(() => {
+          marker.openPopup();
+        }, 100);
+      }
+    } else {
+      // Close all popups when panel is closed
+      map.closePopup();
+    }
+  }, [map, selectedCafe, showCafeDetail, markerRefs]);
+
   return null;
 }
 
@@ -156,6 +177,7 @@ interface MapViewProps {
   cafes: Cafe[];
   selectedCafe: Cafe | null;
   onCafeSelect: (cafe: Cafe) => void;
+  showCafeDetail: boolean;
 }
 
 export default function MapView({ 
@@ -163,7 +185,8 @@ export default function MapView({
   userLocation, 
   cafes, 
   selectedCafe,
-  onCafeSelect 
+  onCafeSelect,
+  showCafeDetail
 }: MapViewProps) {
   // Different tile layers for light and dark mode
   // CARTO Positron - clean minimal style with less street names
@@ -173,6 +196,18 @@ export default function MapView({
   // Memoize icons
   const coffeeIcon = useMemo(() => createCoffeeIcon(), []);
   const userIcon = useMemo(() => createUserIcon(), []);
+
+  // Store refs to markers for popup control
+  const markerRefs = useRef<Map<string, L.Marker>>(new Map());
+
+  // Register marker ref
+  const setMarkerRef = useCallback((cafeId: string, marker: L.Marker | null) => {
+    if (marker) {
+      markerRefs.current.set(cafeId, marker);
+    } else {
+      markerRefs.current.delete(cafeId);
+    }
+  }, []);
 
   return (
     <MapContainer
@@ -189,7 +224,12 @@ export default function MapView({
         key={isDarkMode ? 'dark' : 'light'}
       />
       
-      <MapController userLocation={userLocation} selectedCafe={selectedCafe} />
+      <MapController 
+        userLocation={userLocation} 
+        selectedCafe={selectedCafe}
+        showCafeDetail={showCafeDetail}
+        markerRefs={markerRefs}
+      />
 
       {/* User location marker */}
       {userLocation && (
@@ -228,6 +268,7 @@ export default function MapView({
             key={cafe.id} 
             position={[cafe.lat, cafe.lon]} 
             icon={coffeeIcon}
+            ref={(marker) => setMarkerRef(cafe.id, marker)}
             eventHandlers={{
               click: () => onCafeSelect(cafe),
             }}
