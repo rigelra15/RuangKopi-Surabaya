@@ -1,4 +1,5 @@
 import { MapContainer, TileLayer, useMap, Marker, Popup, Circle } from 'react-leaflet';
+import MarkerClusterGroup from 'react-leaflet-cluster';
 import 'leaflet/dist/leaflet.css';
 import { useEffect, useMemo } from 'react';
 import L from 'leaflet';
@@ -9,7 +10,7 @@ import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 
-// @ts-ignore
+// @ts-expect-error - Leaflet default icon fix
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: markerIcon2x,
@@ -20,6 +21,48 @@ L.Icon.Default.mergeOptions({
 // Surabaya coordinates
 const SURABAYA_CENTER: [number, number] = [-7.2575, 112.7521];
 const DEFAULT_ZOOM = 13;
+
+// Custom cluster icon
+const createClusterCustomIcon = (cluster: { getChildCount: () => number }) => {
+  const count = cluster.getChildCount();
+  let size = 'small';
+  let dimension = 36;
+  
+  if (count >= 100) {
+    size = 'large';
+    dimension = 50;
+  } else if (count >= 50) {
+    size = 'medium';
+    dimension = 44;
+  } else if (count >= 10) {
+    size = 'small';
+    dimension = 40;
+  }
+
+  return L.divIcon({
+    html: `
+      <div style="
+        width: ${dimension}px;
+        height: ${dimension}px;
+        background: linear-gradient(135deg, #6F4E37 0%, #8B6914 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: ${count >= 100 ? '14px' : '13px'};
+        font-family: 'Poppins', sans-serif;
+        box-shadow: 0 4px 12px rgba(111, 78, 55, 0.4);
+        border: 3px solid white;
+      ">
+        ${count}
+      </div>
+    `,
+    className: `marker-cluster marker-cluster-${size}`,
+    iconSize: L.point(dimension, dimension),
+  });
+};
 
 // Custom coffee marker icon
 const createCoffeeIcon = () => {
@@ -153,7 +196,7 @@ export default function MapView({
         <>
           <Marker position={userLocation} icon={userIcon}>
             <Popup>
-              <div className="text-center font-medium">📍 Lokasi Anda</div>
+              <div className="text-center font-medium">Lokasi Anda</div>
             </Popup>
           </Marker>
           {/* Accuracy circle */}
@@ -170,42 +213,52 @@ export default function MapView({
         </>
       )}
 
-      {/* Cafe markers */}
-      {cafes.map((cafe) => (
-        <Marker 
-          key={cafe.id} 
-          position={[cafe.lat, cafe.lon]} 
-          icon={coffeeIcon}
-          eventHandlers={{
-            click: () => onCafeSelect(cafe),
-          }}
-        >
-          <Popup>
-            <div className="min-w-[200px]">
-              <h3 className="font-bold text-lg text-gray-900 mb-1">{cafe.name}</h3>
-              {cafe.address && (
-                <p className="text-sm text-gray-600 mb-2">📍 {cafe.address}</p>
-              )}
-              {cafe.openingHours && (
-                <p className="text-sm text-gray-600 mb-1">🕐 {cafe.openingHours}</p>
-              )}
-              {cafe.phone && (
-                <p className="text-sm text-gray-600 mb-1">📞 {cafe.phone}</p>
-              )}
-              {cafe.website && (
-                <a 
-                  href={cafe.website} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-sm text-primary-600 hover:underline"
-                >
-                  🌐 Website
-                </a>
-              )}
-            </div>
-          </Popup>
-        </Marker>
-      ))}
+      {/* Cafe markers with clustering */}
+      <MarkerClusterGroup
+        chunkedLoading
+        iconCreateFunction={createClusterCustomIcon}
+        maxClusterRadius={60}
+        spiderfyOnMaxZoom={true}
+        showCoverageOnHover={false}
+        zoomToBoundsOnClick={true}
+        disableClusteringAtZoom={17}
+      >
+        {cafes.map((cafe) => (
+          <Marker 
+            key={cafe.id} 
+            position={[cafe.lat, cafe.lon]} 
+            icon={coffeeIcon}
+            eventHandlers={{
+              click: () => onCafeSelect(cafe),
+            }}
+          >
+            <Popup>
+              <div className="min-w-[200px]">
+                <h3 className="font-bold text-lg text-gray-900 mb-1">{cafe.name}</h3>
+                {cafe.address && (
+                  <p className="text-sm text-gray-600 mb-2">{cafe.address}</p>
+                )}
+                {cafe.openingHours && (
+                  <p className="text-sm text-gray-600 mb-1">{cafe.openingHours}</p>
+                )}
+                {cafe.phone && (
+                  <p className="text-sm text-gray-600 mb-1">{cafe.phone}</p>
+                )}
+                {cafe.website && (
+                  <a 
+                    href={cafe.website} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-sm text-primary-600 hover:underline"
+                  >
+                    Website
+                  </a>
+                )}
+              </div>
+            </Popup>
+          </Marker>
+        ))}
+      </MarkerClusterGroup>
     </MapContainer>
   );
 }
