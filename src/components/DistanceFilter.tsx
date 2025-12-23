@@ -6,6 +6,7 @@ interface DistanceFilterProps {
   currentDistance: number | null;
   onDistanceChange: (distance: number | null) => void;
   disabled?: boolean;
+  onDisabledClick?: () => void;
 }
 
 const DISTANCE_OPTIONS = [
@@ -23,6 +24,7 @@ export default function DistanceFilter({
   currentDistance,
   onDistanceChange,
   disabled = false,
+  onDisabledClick,
 }: DistanceFilterProps) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -42,27 +44,46 @@ export default function DistanceFilter({
 
   const text = t[language];
 
+  const handleClick = () => {
+    if (disabled) {
+      onDisabledClick?.();
+    } else {
+      setIsOpen(!isOpen);
+    }
+  };
+
   return (
     <div className="relative">
       <button
-        onClick={() => !disabled && setIsOpen(!isOpen)}
-        disabled={disabled}
+        onClick={handleClick}
         className={`
-          flex items-center gap-2 px-3 py-2 rounded-xl
+          relative flex items-center gap-2 px-3 py-2 rounded-xl
           text-sm font-medium transition-all
           ${disabled
             ? isDarkMode
-              ? 'bg-gray-800/50 text-gray-500 cursor-not-allowed'
-              : 'bg-gray-100/50 text-gray-400 cursor-not-allowed'
-            : isDarkMode
-              ? 'bg-gray-800/90 hover:bg-gray-700 text-white'
-              : 'bg-white/90 hover:bg-white text-gray-800'
+              ? 'bg-gray-800/50 text-gray-500 cursor-pointer'
+              : 'bg-gray-100/50 text-gray-400 cursor-pointer'
+            : currentDistance !== null
+              ? isDarkMode
+                ? 'bg-primary-600 hover:bg-primary-500 text-white'
+                : 'bg-primary-500 hover:bg-primary-400 text-white'
+              : isDarkMode
+                ? 'bg-gray-800/90 hover:bg-gray-700 text-white'
+                : 'bg-white/90 hover:bg-white text-gray-800'
           }
           backdrop-blur-xl shadow-lg border
-          ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}
+          ${currentDistance !== null 
+            ? 'border-primary-400'
+            : isDarkMode ? 'border-gray-700' : 'border-gray-200'
+          }
         `}
         title={disabled ? text.needLocation : text.filterDistance}
       >
+        {/* Active indicator dot for mobile */}
+        {currentDistance !== null && (
+          <span className="sm:hidden absolute -top-1 -right-1 w-3 h-3 bg-white rounded-full border-2 border-primary-500 shadow-sm" />
+        )}
+        
         {/* Distance icon */}
         <svg
           xmlns="http://www.w3.org/2000/svg"
