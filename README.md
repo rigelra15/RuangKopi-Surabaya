@@ -3,9 +3,9 @@
 **Temukan Cafe Terbaik di Surabaya** - Aplikasi peta interaktif untuk mencari dan menjelajahi cafe-cafe di Surabaya, Indonesia.
 
 ![RuangKopi Surabaya](https://img.shields.io/badge/RuangKopi-Surabaya-8B4513?style=for-the-badge&logo=coffeescript&logoColor=white)
-![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react)
-![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript)
-![Vite](https://img.shields.io/badge/Vite-5-646CFF?style=flat-square&logo=vite)
+![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?style=flat-square&logo=typescript)
+![Vite](https://img.shields.io/badge/Vite-7-646CFF?style=flat-square&logo=vite)
 ![Leaflet](https://img.shields.io/badge/Leaflet-Maps-199900?style=flat-square&logo=leaflet)
 
 ## ✨ Fitur
@@ -61,16 +61,16 @@
 
 ## 🛠️ Teknologi
 
-| Teknologi         | Keterangan                                        |
-| ----------------- | ------------------------------------------------- |
-| **React 18**      | Library UI dengan hooks dan functional components |
-| **TypeScript**    | Type-safe JavaScript                              |
-| **Vite**          | Build tool yang cepat                             |
-| **Leaflet.js**    | Library peta interaktif                           |
-| **React-Leaflet** | React wrapper untuk Leaflet                       |
-| **TailwindCSS**   | Utility-first CSS framework                       |
-| **Overpass API**  | Data cafe dari OpenStreetMap                      |
-| **CARTO**         | Tile server untuk peta                            |
+| Teknologi          | Keterangan                                        |
+| ------------------ | ------------------------------------------------- |
+| **React 19**       | Library UI dengan hooks dan functional components |
+| **TypeScript 5.9** | Type-safe JavaScript                              |
+| **Vite 7**         | Build tool yang cepat                             |
+| **Leaflet.js**     | Library peta interaktif                           |
+| **React-Leaflet**  | React wrapper untuk Leaflet                       |
+| **TailwindCSS 3**  | Utility-first CSS framework                       |
+| **Overpass API**   | Data cafe dari OpenStreetMap                      |
+| **CARTO**          | Tile server untuk peta                            |
 
 ## 🎨 Design System
 
