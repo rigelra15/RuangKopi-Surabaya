@@ -264,9 +264,9 @@ function App() {
         onOpenAbout={() => setShowAboutModal(true)}
       />
 
-      {/* Cafe count indicator - positioned at top left below title */}
+      {/* Cafe count indicator - hidden on mobile (overlaps search), visible on desktop below title */}
       {filteredCafes.length > 0 && !showCafeDetail && (
-        <div className="absolute top-[4.5rem] sm:top-20 left-4 sm:left-6 z-[1000]">
+        <div className="hidden sm:block absolute top-20 left-6 z-[1000]">
           <div className={`
             px-3 py-1.5 rounded-full
             ${isDarkMode 
