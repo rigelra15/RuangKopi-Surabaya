@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Icon } from '@iconify/react';
 import { getVersionInfo } from '../services/versionService';
 
@@ -17,20 +18,13 @@ export default function AboutModal({
   onClose,
   onOpenChangelog,
 }: AboutModalProps) {
-  const [isVisible, setIsVisible] = useState(false);
   const [version, setVersion] = useState('1.0.0');
   const [commitCount, setCommitCount] = useState(0);
   const [isLoadingVersion, setIsLoadingVersion] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          setIsVisible(true);
-        });
-      });
-      
-      // Fetch version info - loading state handled in promise callbacks
+      // Fetch version info
       getVersionInfo().then((info) => {
         setVersion(info.version);
         setCommitCount(info.commitCount);
@@ -39,20 +33,12 @@ export default function AboutModal({
         setIsLoadingVersion(false);
       });
     }
-    return () => setIsVisible(false);
   }, [isOpen]);
 
-  const handleClose = () => {
-    setIsVisible(false);
-    setTimeout(onClose, 300);
-  };
-
   const handleOpenChangelog = () => {
-    handleClose();
+    onClose();
     setTimeout(onOpenChangelog, 350);
   };
-
-  if (!isOpen) return null;
 
   const content = {
     id: {
@@ -111,333 +97,458 @@ export default function AboutModal({
     { name: 'TailwindCSS', icon: 'mdi:tailwind' },
   ];
 
-  return (
-    <div
-      className={`
-        fixed inset-0 z-[2000] flex items-center justify-center p-4
-        transition-all duration-300
-        ${isVisible ? 'opacity-100' : 'opacity-0'}
-      `}
-    >
-      {/* Backdrop */}
-      <div
-        className={`
-          absolute inset-0 backdrop-blur-sm
-          ${isDarkMode ? 'bg-black/60' : 'bg-black/40'}
-        `}
-        onClick={handleClose}
-      />
+  // Animation variants
+  const backdropVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1 },
+    exit: { opacity: 0 },
+  };
 
-      {/* Modal */}
-      <div
-        className={`
-          relative w-full max-w-lg mx-auto max-h-[90vh] overflow-y-auto
-          rounded-3xl
-          shadow-2xl
-          transition-all duration-300
-          ${isVisible ? 'scale-100 translate-y-0' : 'scale-95 translate-y-4'}
-          ${isDarkMode
-            ? 'bg-gray-900 border border-gray-700/50'
-            : 'bg-white border border-gray-200/50'
-          }
-        `}
-      >
-        {/* Header */}
-        <div
-          className={`
-            sticky top-0 px-6 py-5 border-b
-            ${isDarkMode
-              ? 'bg-gray-900 border-gray-800'
-              : 'bg-white border-gray-100'
-            }
-          `}
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div
-                className={`
-                  p-2 rounded-xl
-                  ${isDarkMode ? 'bg-primary-600' : 'bg-primary-500'}
-                `}
-              >
-                <Icon icon="mdi:coffee" className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h2
-                  className={`
-                    text-lg font-bold
-                    ${isDarkMode ? 'text-white' : 'text-gray-900'}
-                  `}
-                >
-                  {t.title}
-                </h2>
-                <div className="flex items-center gap-2">
-                  {isLoadingVersion ? (
-                    <Icon icon="mdi:loading" className="w-3 h-3 animate-spin text-gray-500" />
-                  ) : (
-                    <>
-                      <span className="text-xs text-gray-500">
-                        {t.version} {version}
-                      </span>
-                      <span className={`text-xs ${isDarkMode ? 'text-gray-600' : 'text-gray-300'}`}>•</span>
-                      <span className="text-xs text-gray-500">
-                        {commitCount} {t.commits}
-                      </span>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-            <button
-              onClick={handleClose}
+  const modalVariants = {
+    hidden: { 
+      opacity: 0, 
+      scale: 0.9, 
+      y: 20,
+    },
+    visible: { 
+      opacity: 1, 
+      scale: 1, 
+      y: 0,
+      transition: {
+        type: 'spring',
+        stiffness: 300,
+        damping: 25,
+      }
+    },
+    exit: { 
+      opacity: 0, 
+      scale: 0.95, 
+      y: 10,
+      transition: { duration: 0.2 }
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: (i: number) => ({
+      opacity: 1,
+      y: 0,
+      transition: {
+        type: 'spring',
+        stiffness: 300,
+        damping: 25,
+        delay: i * 0.05,
+      }
+    }),
+  };
+
+  const techVariants = {
+    hidden: { opacity: 0, scale: 0.8 },
+    visible: (i: number) => ({
+      opacity: 1,
+      scale: 1,
+      transition: {
+        type: 'spring',
+        stiffness: 300,
+        damping: 25,
+        delay: 0.3 + i * 0.05,
+      }
+    }),
+  };
+
+  return (
+    <AnimatePresence mode="wait">
+      {isOpen && (
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
+          {/* Backdrop */}
+          <motion.div
+            variants={backdropVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className={`
+              absolute inset-0 backdrop-blur-sm
+              ${isDarkMode ? 'bg-black/60' : 'bg-black/40'}
+            `}
+            onClick={onClose}
+          />
+
+          {/* Modal */}
+          <motion.div
+            variants={modalVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className={`
+              relative w-full max-w-lg mx-auto max-h-[90vh] overflow-y-auto
+              rounded-3xl
+              shadow-2xl
+              ${isDarkMode
+                ? 'bg-gray-900 border border-gray-700/50'
+                : 'bg-white border border-gray-200/50'
+              }
+            `}
+          >
+            {/* Header */}
+            <div
               className={`
-                p-2 rounded-xl transition-colors
+                sticky top-0 px-6 py-5 border-b z-10
                 ${isDarkMode
-                  ? 'hover:bg-gray-800 text-gray-400'
-                  : 'hover:bg-gray-100 text-gray-500'
+                  ? 'bg-gray-900 border-gray-800'
+                  : 'bg-white border-gray-100'
                 }
               `}
             >
-              <Icon icon="mdi:close" className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="px-6 py-5 space-y-6">
-          {/* Description */}
-          <p
-            className={`
-              text-sm leading-relaxed
-              ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}
-            `}
-          >
-            {t.description}
-          </p>
-
-          <button
-            onClick={handleOpenChangelog}
-            className={`
-              w-full p-4 rounded-xl border transition-all
-              flex items-center justify-between group
-              ${isDarkMode
-                ? 'bg-primary-900/20 border-primary-800/50 hover:bg-primary-900/30'
-                : 'bg-primary-50 border-primary-100 hover:bg-primary-100'
-              }
-            `}
-          >
-            <div className="flex items-center gap-3">
-              <div
-                className={`
-                  p-2 rounded-lg
-                  ${isDarkMode ? 'bg-primary-600' : 'bg-primary-500'}
-                `}
-              >
-                <Icon icon="mdi:history" className="w-5 h-5 text-white" />
-              </div>
-              <div className="text-left">
-                <p
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <motion.div
+                    initial={{ scale: 0, rotate: -180 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+                    className={`
+                      p-2 rounded-xl
+                      ${isDarkMode ? 'bg-primary-600' : 'bg-primary-500'}
+                    `}
+                  >
+                    <Icon icon="mdi:coffee" className="w-6 h-6 text-white" />
+                  </motion.div>
+                  <div>
+                    <h2
+                      className={`
+                        text-lg font-bold
+                        ${isDarkMode ? 'text-white' : 'text-gray-900'}
+                      `}
+                    >
+                      {t.title}
+                    </h2>
+                    <div className="flex items-center gap-2">
+                      {isLoadingVersion ? (
+                        <motion.div
+                          animate={{ rotate: 360 }}
+                          transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
+                        >
+                          <Icon icon="mdi:loading" className="w-3 h-3 text-gray-500" />
+                        </motion.div>
+                      ) : (
+                        <>
+                          <span className="text-xs text-gray-500">
+                            {t.version} {version}
+                          </span>
+                          <span className={`text-xs ${isDarkMode ? 'text-gray-600' : 'text-gray-300'}`}>•</span>
+                          <span className="text-xs text-gray-500">
+                            {commitCount} {t.commits}
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={onClose}
                   className={`
-                    text-sm font-semibold
-                    ${isDarkMode ? 'text-white' : 'text-gray-900'}
-                  `}
-                >
-                  {t.changelog}
-                </p>
-                <p
-                  className={`
-                    text-xs
-                    ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}
-                  `}
-                >
-                  {language === 'id' ? 'Lihat riwayat perubahan aplikasi' : 'See app change history'}
-                </p>
-              </div>
-            </div>
-            <Icon 
-              icon="mdi:chevron-right" 
-              className={`
-                w-5 h-5 transition-transform group-hover:translate-x-1
-                ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}
-              `} 
-            />
-          </button>
-
-          {/* Features */}
-          <div>
-            <h3
-              className={`
-                text-sm font-semibold mb-3 flex items-center gap-2
-                ${isDarkMode ? 'text-white' : 'text-gray-900'}
-              `}
-            >
-              <Icon icon="mdi:star" className="w-4 h-4 text-primary-500" />
-              {t.features}
-            </h3>
-            <ul className="space-y-2">
-              {t.featureList.map((feature, index) => (
-                <li
-                  key={index}
-                  className={`
-                    flex items-start gap-2 text-sm
-                    ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}
-                  `}
-                >
-                  <Icon icon="mdi:check-circle" className="w-4 h-4 text-primary-500 mt-0.5 flex-shrink-0" />
-                  {feature}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Tech Stack */}
-          <div>
-            <h3
-              className={`
-                text-sm font-semibold mb-3 flex items-center gap-2
-                ${isDarkMode ? 'text-white' : 'text-gray-900'}
-              `}
-            >
-              <Icon icon="mdi:code-tags" className="w-4 h-4 text-primary-500" />
-              {t.techStack}
-            </h3>
-            <div className="flex flex-wrap gap-2">
-              {techList.map((tech, index) => (
-                <span
-                  key={index}
-                  className={`
-                    inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium
+                    p-2 rounded-xl transition-colors
                     ${isDarkMode
-                      ? 'bg-gray-800 text-gray-300'
-                      : 'bg-gray-100 text-gray-700'
+                      ? 'hover:bg-gray-800 text-gray-400'
+                      : 'hover:bg-gray-100 text-gray-500'
                     }
                   `}
                 >
-                  <Icon icon={tech.icon} className="w-3.5 h-3.5" />
-                  {tech.name}
-                </span>
-              ))}
+                  <Icon icon="mdi:close" className="w-5 h-5" />
+                </motion.button>
+              </div>
             </div>
-          </div>
 
-          {/* Data Source */}
-          <div
-            className={`
-              p-4 rounded-xl
-              ${isDarkMode ? 'bg-gray-800/50' : 'bg-gray-50'}
-            `}
-          >
-            <h3
-              className={`
-                text-sm font-semibold mb-2 flex items-center gap-2
-                ${isDarkMode ? 'text-white' : 'text-gray-900'}
-              `}
-            >
-              <Icon icon="mdi:database" className="w-4 h-4 text-primary-500" />
-              {t.dataSource}
-            </h3>
-            <p
-              className={`
-                text-xs
-                ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}
-              `}
-            >
-              {t.dataSourceText}
-            </p>
-          </div>
-
-          {/* Contribute */}
-          <div
-            className={`
-              p-4 rounded-xl border
-              ${isDarkMode
-                ? 'bg-primary-900/20 border-primary-800/50'
-                : 'bg-primary-50 border-primary-100'
-              }
-            `}
-          >
-            <h3
-              className={`
-                text-sm font-semibold mb-2 flex items-center gap-2
-                ${isDarkMode ? 'text-white' : 'text-gray-900'}
-              `}
-            >
-              <Icon icon="mdi:source-branch" className="w-4 h-4 text-primary-500" />
-              {t.contribute}
-            </h3>
-            <p
-              className={`
-                text-xs mb-3
-                ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}
-              `}
-            >
-              {t.contributeText}
-            </p>
-            <a
-              href="https://github.com/rigelra15/RuangKopi-Surabaya"
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`
-                inline-flex items-center gap-2 px-4 py-2 rounded-lg
-                text-sm font-medium text-white
-                bg-gray-900 hover:bg-gray-800
-                transition-colors
-              `}
-            >
-              <Icon icon="mdi:github" className="w-4 h-4" />
-              {t.githubButton}
-            </a>
-          </div>
-
-          {/* Credit */}
-          <div className="text-center pt-2">
-            <p
-              className={`
-                text-xs
-                ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}
-              `}
-            >
-              {t.credit}{' '}
-              <a 
-                href="https://github.com/rigelra15"
-                target="_blank"
-                rel="noopener noreferrer"
+            {/* Content */}
+            <div className="px-6 py-5 space-y-6">
+              {/* Description */}
+              <motion.p
+                custom={0}
+                variants={itemVariants}
+                initial="hidden"
+                animate="visible"
                 className={`
-                  hover:underline transition-colors
-                  ${isDarkMode ? 'text-primary-400 hover:text-primary-300' : 'text-primary-600 hover:text-primary-500'}
+                  text-sm leading-relaxed
+                  ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}
                 `}
               >
-                Rigel Ramadhani Waloni
-              </a>
-            </p>
-          </div>
-        </div>
+                {t.description}
+              </motion.p>
 
-        {/* Footer */}
-        <div
-          className={`
-            sticky bottom-0 px-6 py-4 border-t
-            ${isDarkMode
-              ? 'bg-gray-900 border-gray-800'
-              : 'bg-white border-gray-100'
-            }
-          `}
-        >
-          <button
-            onClick={handleClose}
-            className={`
-              w-full py-2.5 px-4 rounded-xl
-              font-medium transition-colors
-              ${isDarkMode
-                ? 'bg-gray-800 hover:bg-gray-700 text-white'
-                : 'bg-gray-100 hover:bg-gray-200 text-gray-900'
-              }
-            `}
-          >
-            {t.close}
-          </button>
+              <motion.button
+                custom={1}
+                variants={itemVariants}
+                initial="hidden"
+                animate="visible"
+                whileHover={{ scale: 1.02, x: 4 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={handleOpenChangelog}
+                className={`
+                  w-full p-4 rounded-xl border transition-colors
+                  flex items-center justify-between group
+                  ${isDarkMode
+                    ? 'bg-primary-900/20 border-primary-800/50 hover:bg-primary-900/30'
+                    : 'bg-primary-50 border-primary-100 hover:bg-primary-100'
+                  }
+                `}
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`
+                      p-2 rounded-lg
+                      ${isDarkMode ? 'bg-primary-600' : 'bg-primary-500'}
+                    `}
+                  >
+                    <Icon icon="mdi:history" className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="text-left">
+                    <p
+                      className={`
+                        text-sm font-semibold
+                        ${isDarkMode ? 'text-white' : 'text-gray-900'}
+                      `}
+                    >
+                      {t.changelog}
+                    </p>
+                    <p
+                      className={`
+                        text-xs
+                        ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}
+                      `}
+                    >
+                      {language === 'id' ? 'Lihat riwayat perubahan aplikasi' : 'See app change history'}
+                    </p>
+                  </div>
+                </div>
+                <motion.div
+                  animate={{ x: [0, 4, 0] }}
+                  transition={{ repeat: Infinity, duration: 1.5, ease: 'easeInOut' }}
+                >
+                  <Icon 
+                    icon="mdi:chevron-right" 
+                    className={`
+                      w-5 h-5
+                      ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}
+                    `} 
+                  />
+                </motion.div>
+              </motion.button>
+
+              {/* Features */}
+              <motion.div
+                custom={2}
+                variants={itemVariants}
+                initial="hidden"
+                animate="visible"
+              >
+                <h3
+                  className={`
+                    text-sm font-semibold mb-3 flex items-center gap-2
+                    ${isDarkMode ? 'text-white' : 'text-gray-900'}
+                  `}
+                >
+                  <Icon icon="mdi:star" className="w-4 h-4 text-primary-500" />
+                  {t.features}
+                </h3>
+                <ul className="space-y-2">
+                  {t.featureList.map((feature, index) => (
+                    <motion.li
+                      key={index}
+                      custom={index}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.2 + index * 0.05 }}
+                      className={`
+                        flex items-start gap-2 text-sm
+                        ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}
+                      `}
+                    >
+                      <Icon icon="mdi:check-circle" className="w-4 h-4 text-primary-500 mt-0.5 flex-shrink-0" />
+                      {feature}
+                    </motion.li>
+                  ))}
+                </ul>
+              </motion.div>
+
+              {/* Tech Stack */}
+              <motion.div
+                custom={3}
+                variants={itemVariants}
+                initial="hidden"
+                animate="visible"
+              >
+                <h3
+                  className={`
+                    text-sm font-semibold mb-3 flex items-center gap-2
+                    ${isDarkMode ? 'text-white' : 'text-gray-900'}
+                  `}
+                >
+                  <Icon icon="mdi:code-tags" className="w-4 h-4 text-primary-500" />
+                  {t.techStack}
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {techList.map((tech, index) => (
+                    <motion.span
+                      key={index}
+                      custom={index}
+                      variants={techVariants}
+                      initial="hidden"
+                      animate="visible"
+                      whileHover={{ scale: 1.1 }}
+                      className={`
+                        inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium cursor-default
+                        ${isDarkMode
+                          ? 'bg-gray-800 text-gray-300'
+                          : 'bg-gray-100 text-gray-700'
+                        }
+                      `}
+                    >
+                      <Icon icon={tech.icon} className="w-3.5 h-3.5" />
+                      {tech.name}
+                    </motion.span>
+                  ))}
+                </div>
+              </motion.div>
+
+              {/* Data Source */}
+              <motion.div
+                custom={4}
+                variants={itemVariants}
+                initial="hidden"
+                animate="visible"
+                className={`
+                  p-4 rounded-xl
+                  ${isDarkMode ? 'bg-gray-800/50' : 'bg-gray-50'}
+                `}
+              >
+                <h3
+                  className={`
+                    text-sm font-semibold mb-2 flex items-center gap-2
+                    ${isDarkMode ? 'text-white' : 'text-gray-900'}
+                  `}
+                >
+                  <Icon icon="mdi:database" className="w-4 h-4 text-primary-500" />
+                  {t.dataSource}
+                </h3>
+                <p
+                  className={`
+                    text-xs
+                    ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}
+                  `}
+                >
+                  {t.dataSourceText}
+                </p>
+              </motion.div>
+
+              {/* Contribute */}
+              <motion.div
+                custom={5}
+                variants={itemVariants}
+                initial="hidden"
+                animate="visible"
+                className={`
+                  p-4 rounded-xl border
+                  ${isDarkMode
+                    ? 'bg-primary-900/20 border-primary-800/50'
+                    : 'bg-primary-50 border-primary-100'
+                  }
+                `}
+              >
+                <h3
+                  className={`
+                    text-sm font-semibold mb-2 flex items-center gap-2
+                    ${isDarkMode ? 'text-white' : 'text-gray-900'}
+                  `}
+                >
+                  <Icon icon="mdi:source-branch" className="w-4 h-4 text-primary-500" />
+                  {t.contribute}
+                </h3>
+                <p
+                  className={`
+                    text-xs mb-3
+                    ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}
+                  `}
+                >
+                  {t.contributeText}
+                </p>
+                <motion.a
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  href="https://github.com/rigelra15/RuangKopi-Surabaya"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`
+                    inline-flex items-center gap-2 px-4 py-2 rounded-lg
+                    text-sm font-medium text-white
+                    bg-gray-900 hover:bg-gray-800
+                    transition-colors
+                  `}
+                >
+                  <Icon icon="mdi:github" className="w-4 h-4" />
+                  {t.githubButton}
+                </motion.a>
+              </motion.div>
+
+              {/* Credit */}
+              <motion.div 
+                custom={6}
+                variants={itemVariants}
+                initial="hidden"
+                animate="visible"
+                className="text-center pt-2"
+              >
+                <p
+                  className={`
+                    text-xs
+                    ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}
+                  `}
+                >
+                  {t.credit}{' '}
+                  <a 
+                    href="https://github.com/rigelra15"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`
+                      hover:underline transition-colors
+                      ${isDarkMode ? 'text-primary-400 hover:text-primary-300' : 'text-primary-600 hover:text-primary-500'}
+                    `}
+                  >
+                    Rigel Ramadhani Waloni
+                  </a>
+                </p>
+              </motion.div>
+            </div>
+
+            {/* Footer */}
+            <div
+              className={`
+                sticky bottom-0 px-6 py-4 border-t z-10
+                ${isDarkMode
+                  ? 'bg-gray-900 border-gray-800'
+                  : 'bg-white border-gray-100'
+                }
+              `}
+            >
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={onClose}
+                className={`
+                  w-full py-2.5 px-4 rounded-xl
+                  font-medium transition-colors
+                  ${isDarkMode
+                    ? 'bg-gray-800 hover:bg-gray-700 text-white'
+                    : 'bg-gray-100 hover:bg-gray-200 text-gray-900'
+                  }
+                `}
+              >
+                {t.close}
+              </motion.button>
+            </div>
+          </motion.div>
         </div>
-      </div>
-    </div>
+      )}
+    </AnimatePresence>
   );
 }
