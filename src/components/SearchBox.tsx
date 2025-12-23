@@ -64,19 +64,25 @@ export default function SearchBox({
   };
 
   const placeholderText = language === 'id' 
-    ? 'Cari cafe di Surabaya...' 
-    : 'Search cafes in Surabaya...';
+    ? 'Cari cafe...' 
+    : 'Search cafes...';
 
   return (
     <div 
       ref={containerRef}
-      className="absolute top-6 left-1/2 transform -translate-x-1/2 z-[1000] w-[90%] max-w-md"
+      className="
+        absolute z-[1000]
+        /* Mobile: below title, smaller width */
+        top-16 left-4 right-4
+        /* Desktop: centered at top */
+        sm:top-6 sm:left-1/2 sm:transform sm:-translate-x-1/2 sm:w-[90%] sm:max-w-md
+      "
     >
       <form onSubmit={handleSubmit}>
         <div 
           className={`
-            relative flex items-center gap-3 px-4 py-3
-            rounded-2xl shadow-2xl
+            relative flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3
+            rounded-xl sm:rounded-2xl shadow-2xl
             transition-all duration-300 ease-out
             ${isFocused 
               ? 'ring-2 ring-primary-500 shadow-primary-500/25' 
@@ -118,8 +124,8 @@ export default function SearchBox({
             onBlur={() => setIsFocused(false)}
             placeholder={placeholderText}
             className={`
-              flex-1 bg-transparent outline-none
-              text-base font-medium placeholder:font-normal
+              flex-1 bg-transparent outline-none min-w-0
+              text-sm sm:text-base font-medium placeholder:font-normal
               ${isDarkMode 
                 ? 'text-white placeholder:text-gray-400' 
                 : 'text-gray-900 placeholder:text-gray-500'
@@ -222,16 +228,16 @@ export default function SearchBox({
         <div 
           className={`
             absolute top-full left-0 right-0 mt-2
-            rounded-2xl shadow-2xl overflow-hidden
-            max-h-[60vh] overflow-y-auto
+            rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden
+            max-h-[50vh] sm:max-h-[60vh] overflow-y-auto
             ${isDarkMode 
               ? 'bg-gray-900/95 backdrop-blur-xl border border-gray-700/50' 
               : 'bg-white/95 backdrop-blur-xl border border-gray-200/50'
             }
           `}
         >
-          <div className={`px-4 py-2 border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-100'}`}>
-            <span className={`text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+          <div className={`px-3 sm:px-4 py-2 border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-100'}`}>
+            <span className={`text-xs sm:text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
               {searchResults.length} {language === 'id' ? 'cafe ditemukan' : 'cafes found'}
             </span>
           </div>
@@ -241,9 +247,9 @@ export default function SearchBox({
               key={cafe.id}
               onClick={() => handleSelectCafe(cafe)}
               className={`
-                w-full px-4 py-3 text-left
+                w-full px-3 sm:px-4 py-2.5 sm:py-3 text-left
                 transition-colors duration-150
-                flex items-start gap-3
+                flex items-start gap-2 sm:gap-3
                 ${isDarkMode 
                   ? 'hover:bg-gray-800/50' 
                   : 'hover:bg-gray-50'
@@ -252,12 +258,12 @@ export default function SearchBox({
             >
               {/* Coffee Icon */}
               <div className={`
-                flex-shrink-0 p-2 rounded-lg mt-0.5
+                flex-shrink-0 p-1.5 sm:p-2 rounded-lg mt-0.5
                 ${isDarkMode ? 'bg-primary-600/20' : 'bg-primary-50'}
               `}>
                 <svg 
                   xmlns="http://www.w3.org/2000/svg" 
-                  className={`h-4 w-4 ${isDarkMode ? 'text-primary-400' : 'text-primary-600'}`}
+                  className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${isDarkMode ? 'text-primary-400' : 'text-primary-600'}`}
                   viewBox="0 0 24 24" 
                   fill="currentColor"
                 >
@@ -267,11 +273,11 @@ export default function SearchBox({
               
               {/* Cafe Info */}
               <div className="flex-1 min-w-0">
-                <h4 className={`font-medium truncate ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                <h4 className={`text-sm sm:text-base font-medium truncate ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                   {cafe.name}
                 </h4>
                 {cafe.address && (
-                  <p className={`text-sm truncate ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                  <p className={`text-xs sm:text-sm truncate ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                     {cafe.address}
                   </p>
                 )}
@@ -281,7 +287,7 @@ export default function SearchBox({
           
           {searchResults.length > 10 && (
             <div className={`px-4 py-2 text-center ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
-              <span className="text-sm">
+              <span className="text-xs sm:text-sm">
                 +{searchResults.length - 10} {language === 'id' ? 'cafe lainnya' : 'more cafes'}
               </span>
             </div>
@@ -289,9 +295,9 @@ export default function SearchBox({
         </div>
       )}
 
-      {/* Glowing effect behind */}
+      {/* Glowing effect behind - hidden on mobile for performance */}
       <div className={`
-        absolute inset-0 -z-10 rounded-2xl blur-xl opacity-30
+        hidden sm:block absolute inset-0 -z-10 rounded-2xl blur-xl opacity-30
         ${isDarkMode 
           ? 'bg-primary-500' 
           : 'bg-primary-400'
