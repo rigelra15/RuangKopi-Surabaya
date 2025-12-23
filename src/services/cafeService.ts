@@ -10,6 +10,16 @@ export interface Cafe {
   website?: string;
   openingHours?: string;
   cuisine?: string;
+  // New useful fields for students
+  brand?: string;
+  hasWifi?: boolean;
+  wifiFree?: boolean;
+  wifiSsid?: string;
+  hasOutdoorSeating?: boolean;
+  smokingPolicy?: 'yes' | 'no' | 'outside' | 'separated' | 'isolated' | string;
+  hasTakeaway?: boolean;
+  hasAirConditioning?: boolean;
+  operator?: string;
 }
 
 // Surabaya bounding box
@@ -45,8 +55,19 @@ async function fetchWithTimeout(url: string, options: RequestInit, timeout: numb
   }
 }
 
+// Overpass API response type
+interface OverpassResponse {
+  elements: Array<{
+    id: number;
+    lat?: number;
+    lon?: number;
+    center?: { lat: number; lon: number };
+    tags?: Record<string, string>;
+  }>;
+}
+
 // Try fetching from multiple endpoints
-async function fetchFromOverpass(query: string): Promise<any> {
+async function fetchFromOverpass(query: string): Promise<OverpassResponse> {
   let lastError: Error | null = null;
   
   for (const endpoint of OVERPASS_ENDPOINTS) {
@@ -97,15 +118,34 @@ export async function searchCafes(query: string = ''): Promise<Cafe[]> {
     const data = await fetchFromOverpass(overpassQuery);
     
     // Parse OSM elements to Cafe objects
-    const cafes: Cafe[] = data.elements
-      .map((element: any) => {
+    const cafes = data.elements
+      .map((element) => {
         const tags = element.tags || {};
         const lat = element.lat || element.center?.lat;
         const lon = element.lon || element.center?.lon;
         
         if (!lat || !lon || !tags.name) return null;
         
-        return {
+        // Parse WiFi info
+        const internetAccess = tags['internet_access'];
+        const hasWifi = internetAccess === 'wlan' || internetAccess === 'yes' || internetAccess === 'wifi';
+        const wifiFee = tags['internet_access:fee'];
+        const wifiFree = wifiFee === 'no' || wifiFee === 'customers';
+        const wifiSsid = tags['internet_access:ssid'];
+        
+        // Parse other amenities
+        const outdoorSeating = tags['outdoor_seating'];
+        const hasOutdoorSeating = outdoorSeating === 'yes';
+        
+        const smokingPolicy = tags['smoking'];
+        
+        const takeaway = tags['takeaway'];
+        const hasTakeaway = takeaway === 'yes' || takeaway === 'only';
+        
+        const airConditioning = tags['air_conditioning'];
+        const hasAirConditioning = airConditioning === 'yes';
+        
+        const cafe: Cafe = {
           id: element.id.toString(),
           name: tags.name,
           lat,
@@ -115,9 +155,20 @@ export async function searchCafes(query: string = ''): Promise<Cafe[]> {
           website: tags.website || tags['contact:website'],
           openingHours: tags.opening_hours,
           cuisine: tags.cuisine,
+          // New fields
+          brand: tags.brand,
+          hasWifi: hasWifi || undefined,
+          wifiFree: hasWifi ? wifiFree : undefined,
+          wifiSsid: wifiSsid || undefined,
+          hasOutdoorSeating: hasOutdoorSeating || undefined,
+          smokingPolicy: smokingPolicy || undefined,
+          hasTakeaway: hasTakeaway || undefined,
+          hasAirConditioning: hasAirConditioning || undefined,
+          operator: tags.operator || undefined,
         };
+        return cafe;
       })
-      .filter((cafe: Cafe | null): cafe is Cafe => cafe !== null);
+      .filter((cafe): cafe is Cafe => cafe !== null);
 
     // Filter by search query if provided
     if (query.trim()) {
@@ -125,7 +176,8 @@ export async function searchCafes(query: string = ''): Promise<Cafe[]> {
       return cafes.filter(cafe => 
         cafe.name.toLowerCase().includes(lowerQuery) ||
         cafe.address?.toLowerCase().includes(lowerQuery) ||
-        cafe.cuisine?.toLowerCase().includes(lowerQuery)
+        cafe.cuisine?.toLowerCase().includes(lowerQuery) ||
+        cafe.brand?.toLowerCase().includes(lowerQuery)
       );
     }
 
@@ -235,8 +287,56 @@ function getSampleCafes(query: string = ''): Cafe[] {
   return sampleCafes;
 }
 
+// Reverse geocode coordinates to address
+export async function reverseGeocode(lat: number, lon: number): Promise<string | null> {
+  try {
+    const response = await fetchWithTimeout(
+      `https://nominatim.openstreetmap.org/reverse?` +
+      `lat=${lat}&lon=${lon}&format=json&addressdetails=1&zoom=18`,
+      { 
+        method: 'GET',
+        headers: {
+          'Accept-Language': 'id,en',
+        }
+      },
+      10000
+    );
+    
+    if (!response.ok) return null;
+    
+    const result = await response.json();
+    
+    if (result && result.address) {
+      const addr = result.address;
+      // Build a readable address from components
+      const parts = [
+        addr.road || addr.street,
+        addr.house_number,
+        addr.suburb || addr.neighbourhood || addr.village,
+        addr.city || addr.town || addr.municipality,
+      ].filter(Boolean);
+      
+      if (parts.length > 0) {
+        return parts.join(', ');
+      }
+      
+      // Fallback to display_name if parts are empty
+      if (result.display_name) {
+        // Shorten the display name (remove country, postal code, etc.)
+        const displayParts = result.display_name.split(', ');
+        return displayParts.slice(0, 4).join(', ');
+      }
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Error reverse geocoding:', error);
+    return null;
+  }
+}
+
 // Geocode a location name to coordinates
-export async function geocodeLocation(query: string): Promise<{ lat: number; lon: number } | null> {
+export async function geocodeLocation(query: string): Promise<{ lat: number; lon: number; displayName?: string } | null> {
   try {
     const response = await fetchWithTimeout(
       `https://nominatim.openstreetmap.org/search?` + 
@@ -254,6 +354,7 @@ export async function geocodeLocation(query: string): Promise<{ lat: number; lon
       return {
         lat: parseFloat(results[0].lat),
         lon: parseFloat(results[0].lon),
+        displayName: results[0].display_name,
       };
     }
     
@@ -262,4 +363,44 @@ export async function geocodeLocation(query: string): Promise<{ lat: number; lon
     console.error('Error geocoding:', error);
     return null;
   }
+}
+
+// Search for cafes near a geocoded location
+export async function searchCafesNearLocation(
+  lat: number, 
+  lon: number, 
+  radiusKm: number = 1
+): Promise<Cafe[]> {
+  try {
+    const allCafes = await searchCafes('');
+    
+    // Filter cafes within the radius using Haversine formula
+    const nearbyCafes = allCafes.filter(cafe => {
+      const distance = haversineDistance(lat, lon, cafe.lat, cafe.lon);
+      return distance <= radiusKm;
+    }).sort((a, b) => {
+      // Sort by distance
+      const distA = haversineDistance(lat, lon, a.lat, a.lon);
+      const distB = haversineDistance(lat, lon, b.lat, b.lon);
+      return distA - distB;
+    });
+    
+    return nearbyCafes;
+  } catch (error) {
+    console.error('Error searching cafes near location:', error);
+    return [];
+  }
+}
+
+// Haversine formula to calculate distance between two points
+function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371; // Earth's radius in km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
 }
