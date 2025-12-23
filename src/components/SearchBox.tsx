@@ -4,6 +4,7 @@ import type { Cafe } from '../services/cafeService';
 interface SearchBoxProps {
   isDarkMode: boolean;
   onSearch: (query: string) => void;
+  onClear: () => void;
   searchResults: Cafe[];
   isLoading: boolean;
   onSelectCafe: (cafe: Cafe) => void;
@@ -13,6 +14,7 @@ interface SearchBoxProps {
 export default function SearchBox({ 
   isDarkMode, 
   onSearch, 
+  onClear,
   searchResults, 
   isLoading,
   onSelectCafe,
@@ -66,6 +68,7 @@ export default function SearchBox({
   const handleClear = () => {
     setSearchQuery('');
     setShowResults(false);
+    onClear(); // Reset filter in parent component
   };
 
   const placeholderText = language === 'id' 

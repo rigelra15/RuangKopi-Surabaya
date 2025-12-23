@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { Icon } from '@iconify/react';
 import MapView from './components/MapView';
 import SearchBox from './components/SearchBox';
 import MapControls from './components/MapControls';
@@ -8,6 +9,7 @@ import FavoritesPanel from './components/FavoritesPanel';
 import IntroductionModal from './components/IntroductionModal';
 import AboutModal from './components/AboutModal';
 import ChangelogModal from './components/ChangelogModal';
+import LocationPermissionModal from './components/LocationPermissionModal';
 import { searchCafes, type Cafe } from './services/cafeService';
 import { calculateDistance } from './services/favoritesService';
 
@@ -44,6 +46,7 @@ function App() {
   const [showCafeDetail, setShowCafeDetail] = useState(false);
   const [showAboutModal, setShowAboutModal] = useState(false);
   const [showChangelogModal, setShowChangelogModal] = useState(false);
+  const [showLocationModal, setShowLocationModal] = useState(false);
 
   // Apply dark mode class to document
   useEffect(() => {
@@ -207,6 +210,18 @@ function App() {
       <SearchBox 
         isDarkMode={isDarkMode} 
         onSearch={handleSearch}
+        onClear={async () => {
+          // Reset to all cafes when search is cleared
+          setIsSearching(true);
+          try {
+            const results = await searchCafes('');
+            setCafes(results);
+          } catch (error) {
+            console.error('Error loading cafes:', error);
+          } finally {
+            setIsSearching(false);
+          }
+        }}
         searchResults={filteredCafes}
         isLoading={isSearching}
         onSelectCafe={handleSelectCafe}
@@ -250,6 +265,7 @@ function App() {
             currentDistance={distanceFilter}
             onDistanceChange={setDistanceFilter}
             disabled={!userLocation}
+            onDisabledClick={() => setShowLocationModal(true)}
           />
         </div>
       </div>
@@ -276,7 +292,8 @@ function App() {
             backdrop-blur-xl shadow-md
             text-xs font-medium
           `}>
-            ☕ {filteredCafes.length} {language === 'id' ? 'cafe ditemukan' : 'cafes found'}
+            <Icon icon="mdi:coffee" className="w-3.5 h-3.5 inline mr-1" />
+            {filteredCafes.length} {language === 'id' ? 'cafe ditemukan' : 'cafes found'}
             {distanceFilter && userLocation && (
               <span className="text-primary-500 ml-1">
                 ({distanceFilter >= 1 ? `${distanceFilter} km` : `${distanceFilter * 1000} m`})
@@ -287,15 +304,14 @@ function App() {
       )}
 
       {/* Cafe Detail Panel */}
-      {showCafeDetail && (
-        <CafeDetailPanel
-          cafe={selectedCafe}
-          onClose={handleCloseCafeDetail}
-          isDarkMode={isDarkMode}
-          userLocation={userLocation}
-          language={language}
-        />
-      )}
+      <CafeDetailPanel
+        cafe={selectedCafe}
+        onClose={handleCloseCafeDetail}
+        isDarkMode={isDarkMode}
+        userLocation={userLocation}
+        language={language}
+        isOpen={showCafeDetail}
+      />
 
       {/* Favorites Panel */}
       <FavoritesPanel
@@ -333,6 +349,15 @@ function App() {
         language={language}
         isOpen={showChangelogModal}
         onClose={() => setShowChangelogModal(false)}
+      />
+
+      {/* Location Permission Modal */}
+      <LocationPermissionModal
+        isDarkMode={isDarkMode}
+        language={language}
+        isOpen={showLocationModal}
+        onClose={() => setShowLocationModal(false)}
+        onRequestLocation={handleMyLocation}
       />
     </div>
   );
