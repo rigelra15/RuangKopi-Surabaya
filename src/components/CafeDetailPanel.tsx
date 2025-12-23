@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Icon } from '@iconify/react';
 import type { Cafe } from '../services/cafeService';
+import { reverseGeocode } from '../services/cafeService';
 import { isFavorite, toggleFavorite, formatDistance, calculateDistance } from '../services/favoritesService';
 
 interface CafeDetailPanelProps {
@@ -13,6 +14,11 @@ interface CafeDetailPanelProps {
   isOpen: boolean;
 }
 
+// Cache for geocoded addresses to avoid re-fetching
+const addressCache = new Map<string, string | null>();
+// Track loading cafes outside of React state to avoid circular deps
+const loadingCafeIdsRef = new Set<string>();
+
 export default function CafeDetailPanel({
   cafe,
   onClose,
@@ -23,12 +29,56 @@ export default function CafeDetailPanel({
 }: CafeDetailPanelProps) {
   // Derive initial state from cafe prop
   const [isFav, setIsFav] = useState(() => cafe ? isFavorite(cafe.id) : false);
+  const [geocodedAddresses, setGeocodedAddresses] = useState<Map<string, string | null>>(new Map(addressCache));
+  const [, forceUpdate] = useState(0);
   
   // Update when cafe changes using a key pattern or direct check
   const currentFavStatus = cafe ? isFavorite(cafe.id) : false;
   if (cafe && isFav !== currentFavStatus) {
     setIsFav(currentFavStatus);
   }
+
+  // Derive current geocoded address and loading state
+  const geocodedAddress = useMemo(() => {
+    if (!cafe) return null;
+    return geocodedAddresses.get(cafe.id) ?? null;
+  }, [cafe, geocodedAddresses]);
+
+  const isGeocodingAddress = cafe ? loadingCafeIdsRef.has(cafe.id) : false;
+
+  // Function to fetch address
+  const fetchAddress = useCallback((cafeId: string, lat: number, lon: number) => {
+    if (addressCache.has(cafeId) || loadingCafeIdsRef.has(cafeId)) {
+      return;
+    }
+    
+    loadingCafeIdsRef.add(cafeId);
+    forceUpdate(n => n + 1);
+    
+    reverseGeocode(lat, lon)
+      .then((address) => {
+        addressCache.set(cafeId, address);
+        setGeocodedAddresses(prev => new Map(prev).set(cafeId, address));
+      })
+      .catch(() => {
+        addressCache.set(cafeId, null);
+        setGeocodedAddresses(prev => new Map(prev).set(cafeId, null));
+      })
+      .finally(() => {
+        loadingCafeIdsRef.delete(cafeId);
+        forceUpdate(n => n + 1);
+      });
+  }, []);
+
+  // Effect to trigger geocoding for ALL cafes (reverse geocode gives more complete address)
+  useEffect(() => {
+    if (!cafe || !isOpen) {
+      return;
+    }
+    
+    // Always fetch address via reverse geocoding for more complete results
+    fetchAddress(cafe.id, cafe.lat, cafe.lon);
+  }, [cafe, isOpen, fetchAddress]);
 
   const handleToggleFavorite = () => {
     if (cafe) {
@@ -57,6 +107,9 @@ export default function CafeDetailPanel({
     ? calculateDistance(userLocation[0], userLocation[1], cafe.lat, cafe.lon)
     : null;
 
+  // Determine the address to display - prioritize geocoded address (more complete)
+  const displayAddress = geocodedAddress || cafe?.address;
+
   const t = {
     id: {
       directions: 'Rute',
@@ -64,7 +117,20 @@ export default function CafeDetailPanel({
       website: 'Website',
       openingHours: 'Jam Buka',
       noAddress: 'Alamat tidak tersedia',
+      loadingAddress: 'Memuat alamat...',
       fromYou: 'dari lokasi Anda',
+      // Amenities
+      amenities: 'Fasilitas',
+      wifi: 'WiFi',
+      wifiFree: 'WiFi Gratis',
+      wifiPaid: 'WiFi Berbayar',
+      outdoorSeating: 'Tempat Outdoor',
+      takeaway: 'Bisa Takeaway',
+      smokingYes: 'Boleh Merokok',
+      smokingNo: 'Dilarang Merokok',
+      smokingOutside: 'Merokok di Luar',
+      airConditioning: 'AC',
+      brand: 'Brand',
     },
     en: {
       directions: 'Directions',
@@ -72,7 +138,20 @@ export default function CafeDetailPanel({
       website: 'Website',
       openingHours: 'Opening Hours',
       noAddress: 'Address not available',
+      loadingAddress: 'Loading address...',
       fromYou: 'from you',
+      // Amenities
+      amenities: 'Amenities',
+      wifi: 'WiFi',
+      wifiFree: 'Free WiFi',
+      wifiPaid: 'Paid WiFi',
+      outdoorSeating: 'Outdoor Seating',
+      takeaway: 'Takeaway Available',
+      smokingYes: 'Smoking Allowed',
+      smokingNo: 'No Smoking',
+      smokingOutside: 'Smoking Outside',
+      airConditioning: 'Air Conditioning',
+      brand: 'Brand',
     },
   };
 
@@ -94,7 +173,7 @@ export default function CafeDetailPanel({
       y: 0,
       opacity: 1,
       transition: {
-        type: 'spring',
+        type: 'spring' as const,
         stiffness: 300,
         damping: 30,
       }
@@ -115,7 +194,7 @@ export default function CafeDetailPanel({
       x: 0,
       opacity: 1,
       transition: {
-        type: 'spring',
+        type: 'spring' as const,
         stiffness: 300,
         damping: 25,
       }
@@ -133,7 +212,7 @@ export default function CafeDetailPanel({
       opacity: 1,
       y: 0,
       transition: {
-        type: 'spring',
+        type: 'spring' as const,
         stiffness: 300,
         damping: 25,
         delay: 0.1 + i * 0.05,
@@ -151,7 +230,7 @@ export default function CafeDetailPanel({
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="fixed inset-0 bg-black/30 z-[1001] md:hidden backdrop-blur-sm"
+            className="fixed inset-0 bg-black/30 z-[1001] md:hidden"
             onClick={onClose}
           />
           
@@ -262,7 +341,16 @@ export default function CafeDetailPanel({
                 className={`flex items-start gap-2 text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}
               >
                 <Icon icon="mdi:map-marker" className="w-5 h-5 flex-shrink-0 text-primary-500" />
-                <span>{cafe.address || text.noAddress}</span>
+                <span>
+                  {isGeocodingAddress ? (
+                    <span className="flex items-center gap-1">
+                      <Icon icon="mdi:loading" className="w-4 h-4 animate-spin" />
+                      {text.loadingAddress}
+                    </span>
+                  ) : (
+                    displayAddress || text.noAddress
+                  )}
+                </span>
               </motion.div>
 
               {/* Opening hours */}
@@ -310,6 +398,121 @@ export default function CafeDetailPanel({
                 >
                   <Icon icon="mdi:coffee" className="w-5 h-5 flex-shrink-0 text-primary-500" />
                   <span className="capitalize">{cafe.cuisine}</span>
+                </motion.div>
+              )}
+
+              {/* Amenities badges - Show if any amenity exists */}
+              {(cafe.hasWifi || cafe.hasOutdoorSeating || cafe.hasTakeaway || cafe.smokingPolicy || cafe.hasAirConditioning || cafe.brand) && (
+                <motion.div
+                  custom={4}
+                  variants={itemVariants}
+                  initial="hidden"
+                  animate="visible"
+                  className="pt-2"
+                >
+                  <div className={`text-xs font-medium mb-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                    {text.amenities}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {/* WiFi */}
+                    {cafe.hasWifi && (
+                      <div className={`
+                        inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium
+                        ${isDarkMode 
+                          ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' 
+                          : 'bg-amber-100 text-amber-700 border border-amber-200'
+                        }
+                      `}>
+                        <Icon icon="mdi:wifi" className="w-3.5 h-3.5" />
+                        {cafe.wifiFree ? text.wifiFree : text.wifi}
+                        {cafe.wifiSsid && (
+                          <span className={`ml-1 ${isDarkMode ? 'text-amber-300/70' : 'text-amber-600/70'}`}>
+                            ({cafe.wifiSsid})
+                          </span>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Outdoor Seating */}
+                    {cafe.hasOutdoorSeating && (
+                      <div className={`
+                        inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium
+                        ${isDarkMode 
+                          ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' 
+                          : 'bg-amber-100 text-amber-700 border border-amber-200'
+                        }
+                      `}>
+                        <Icon icon="mdi:table-chair" className="w-3.5 h-3.5" />
+                        {text.outdoorSeating}
+                      </div>
+                    )}
+
+                    {/* Takeaway */}
+                    {cafe.hasTakeaway && (
+                      <div className={`
+                        inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium
+                        ${isDarkMode 
+                          ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' 
+                          : 'bg-amber-100 text-amber-700 border border-amber-200'
+                        }
+                      `}>
+                        <Icon icon="mdi:package-variant" className="w-3.5 h-3.5" />
+                        {text.takeaway}
+                      </div>
+                    )}
+
+                    {/* Air Conditioning */}
+                    {cafe.hasAirConditioning && (
+                      <div className={`
+                        inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium
+                        ${isDarkMode 
+                          ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' 
+                          : 'bg-amber-100 text-amber-700 border border-amber-200'
+                        }
+                      `}>
+                        <Icon icon="mdi:snowflake" className="w-3.5 h-3.5" />
+                        {text.airConditioning}
+                      </div>
+                    )}
+
+                    {/* Smoking Policy */}
+                    {cafe.smokingPolicy && (
+                      <div className={`
+                        inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium
+                        ${cafe.smokingPolicy === 'no' 
+                          ? (isDarkMode 
+                              ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' 
+                              : 'bg-rose-100 text-rose-700 border border-rose-200')
+                          : (isDarkMode 
+                              ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' 
+                              : 'bg-amber-100 text-amber-700 border border-amber-200')
+                        }
+                      `}>
+                        <Icon 
+                          icon={cafe.smokingPolicy === 'no' ? 'mdi:smoking-off' : 'mdi:smoking'} 
+                          className="w-3.5 h-3.5" 
+                        />
+                        {cafe.smokingPolicy === 'no' && text.smokingNo}
+                        {cafe.smokingPolicy === 'yes' && text.smokingYes}
+                        {cafe.smokingPolicy === 'outside' && text.smokingOutside}
+                        {!['yes', 'no', 'outside'].includes(cafe.smokingPolicy) && cafe.smokingPolicy}
+                      </div>
+                    )}
+
+                    {/* Brand */}
+                    {cafe.brand && (
+                      <div className={`
+                        inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium
+                        ${isDarkMode 
+                          ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' 
+                          : 'bg-amber-100 text-amber-700 border border-amber-200'
+                        }
+                      `}>
+                        <Icon icon="mdi:tag" className="w-3.5 h-3.5" />
+                        {cafe.brand}
+                      </div>
+                    )}
+                  </div>
                 </motion.div>
               )}
             </div>
