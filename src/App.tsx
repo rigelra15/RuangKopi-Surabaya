@@ -145,6 +145,17 @@ function App() {
     }
   }, []);
 
+  // Handle when user selects a geocoded location
+  const handleAddressFound = useCallback((_lat: number, _lon: number, nearbyCafes: Cafe[]) => {
+    // If there are cafes near the location, show them
+    if (nearbyCafes.length > 0) {
+      setCafes(nearbyCafes);
+      // Select the first cafe to center the map
+      setSelectedCafe(nearbyCafes[0]);
+      setShowCafeDetail(true);
+    }
+  }, []);
+
   const handleSelectCafe = useCallback((cafe: Cafe) => {
     setSelectedCafe(cafe);
     setShowCafeDetail(true);
@@ -170,6 +181,7 @@ function App() {
           cafes={filteredCafes}
           selectedCafe={selectedCafe}
           onCafeSelect={handleSelectCafe}
+          showCafeDetail={showCafeDetail}
         />
       </div>
 
@@ -226,6 +238,7 @@ function App() {
         isLoading={isSearching}
         onSelectCafe={handleSelectCafe}
         language={language}
+        onAddressFound={handleAddressFound}
       />
 
       {/* Distance Filter - Top Right */}

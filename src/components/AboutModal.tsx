@@ -115,7 +115,7 @@ export default function AboutModal({
       scale: 1, 
       y: 0,
       transition: {
-        type: 'spring',
+        type: 'spring' as const,
         stiffness: 300,
         damping: 25,
       }
@@ -134,7 +134,7 @@ export default function AboutModal({
       opacity: 1,
       y: 0,
       transition: {
-        type: 'spring',
+        type: 'spring' as const,
         stiffness: 300,
         damping: 25,
         delay: i * 0.05,
@@ -148,7 +148,7 @@ export default function AboutModal({
       opacity: 1,
       scale: 1,
       transition: {
-        type: 'spring',
+        type: 'spring' as const,
         stiffness: 300,
         damping: 25,
         delay: 0.3 + i * 0.05,
