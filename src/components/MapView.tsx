@@ -1,0 +1,211 @@
+import { MapContainer, TileLayer, useMap, Marker, Popup, Circle } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import { useEffect, useMemo } from 'react';
+import L from 'leaflet';
+import type { Cafe } from '../services/cafeService';
+
+// Fix for default marker icons in Leaflet with Vite
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+
+// @ts-ignore
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: markerIcon2x,
+  iconUrl: markerIcon,
+  shadowUrl: markerShadow,
+});
+
+// Surabaya coordinates
+const SURABAYA_CENTER: [number, number] = [-7.2575, 112.7521];
+const DEFAULT_ZOOM = 13;
+
+// Custom coffee marker icon
+const createCoffeeIcon = () => {
+  return L.divIcon({
+    className: 'custom-cafe-marker',
+    html: `
+      <div style="
+        width: 36px;
+        height: 36px;
+        background: linear-gradient(135deg, #6F4E37 0%, #8B6914 100%);
+        border-radius: 50% 50% 50% 0;
+        transform: rotate(-45deg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(111, 78, 55, 0.4);
+        border: 2px solid white;
+      ">
+        <svg 
+          xmlns="http://www.w3.org/2000/svg" 
+          viewBox="0 0 24 24" 
+          fill="white" 
+          style="width: 18px; height: 18px; transform: rotate(45deg);"
+        >
+          <path d="M2 21h18v-2H2M20 8h-2V5h2m0-2H4v10a4 4 0 004 4h6a4 4 0 004-4v-3h2a2 2 0 002-2V5a2 2 0 00-2-2z"/>
+        </svg>
+      </div>
+    `,
+    iconSize: [36, 36],
+    iconAnchor: [18, 36],
+    popupAnchor: [0, -36],
+  });
+};
+
+// User location icon
+const createUserIcon = () => {
+  return L.divIcon({
+    className: 'user-location-marker',
+    html: `
+      <div style="
+        width: 20px;
+        height: 20px;
+        background: #3B82F6;
+        border-radius: 50%;
+        border: 3px solid white;
+        box-shadow: 0 2px 8px rgba(59, 130, 246, 0.5);
+      "></div>
+    `,
+    iconSize: [20, 20],
+    iconAnchor: [10, 10],
+  });
+};
+
+// Component to handle map movements
+function MapController({ 
+  userLocation, 
+  selectedCafe 
+}: { 
+  userLocation: [number, number] | null;
+  selectedCafe: Cafe | null;
+}) {
+  const map = useMap();
+  
+  useEffect(() => {
+    // Set max bounds to Surabaya area
+    const southWest: [number, number] = [-7.4, 112.6];
+    const northEast: [number, number] = [-7.1, 112.9];
+    map.setMaxBounds([southWest, northEast]);
+  }, [map]);
+
+  // Pan to user location when it changes
+  useEffect(() => {
+    if (userLocation) {
+      map.flyTo(userLocation, 15, { duration: 1.5 });
+    }
+  }, [map, userLocation]);
+
+  // Pan to selected cafe when it changes
+  useEffect(() => {
+    if (selectedCafe) {
+      map.flyTo([selectedCafe.lat, selectedCafe.lon], 16, { duration: 1 });
+    }
+  }, [map, selectedCafe]);
+
+  return null;
+}
+
+interface MapViewProps {
+  isDarkMode: boolean;
+  userLocation: [number, number] | null;
+  cafes: Cafe[];
+  selectedCafe: Cafe | null;
+  onCafeSelect: (cafe: Cafe) => void;
+}
+
+export default function MapView({ 
+  isDarkMode, 
+  userLocation, 
+  cafes, 
+  selectedCafe,
+  onCafeSelect 
+}: MapViewProps) {
+  // Different tile layers for light and dark mode
+  // CARTO Positron - clean minimal style with less street names
+  const lightTileUrl = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+  const darkTileUrl = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+
+  // Memoize icons
+  const coffeeIcon = useMemo(() => createCoffeeIcon(), []);
+  const userIcon = useMemo(() => createUserIcon(), []);
+
+  return (
+    <MapContainer
+      center={SURABAYA_CENTER}
+      zoom={DEFAULT_ZOOM}
+      minZoom={11}
+      maxZoom={18}
+      className="h-full w-full"
+      zoomControl={false}
+    >
+      <TileLayer
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+        url={isDarkMode ? darkTileUrl : lightTileUrl}
+        key={isDarkMode ? 'dark' : 'light'}
+      />
+      
+      <MapController userLocation={userLocation} selectedCafe={selectedCafe} />
+
+      {/* User location marker */}
+      {userLocation && (
+        <>
+          <Marker position={userLocation} icon={userIcon}>
+            <Popup>
+              <div className="text-center font-medium">📍 Lokasi Anda</div>
+            </Popup>
+          </Marker>
+          {/* Accuracy circle */}
+          <Circle
+            center={userLocation}
+            radius={100}
+            pathOptions={{
+              color: '#3B82F6',
+              fillColor: '#3B82F6',
+              fillOpacity: 0.1,
+              weight: 2,
+            }}
+          />
+        </>
+      )}
+
+      {/* Cafe markers */}
+      {cafes.map((cafe) => (
+        <Marker 
+          key={cafe.id} 
+          position={[cafe.lat, cafe.lon]} 
+          icon={coffeeIcon}
+          eventHandlers={{
+            click: () => onCafeSelect(cafe),
+          }}
+        >
+          <Popup>
+            <div className="min-w-[200px]">
+              <h3 className="font-bold text-lg text-gray-900 mb-1">{cafe.name}</h3>
+              {cafe.address && (
+                <p className="text-sm text-gray-600 mb-2">📍 {cafe.address}</p>
+              )}
+              {cafe.openingHours && (
+                <p className="text-sm text-gray-600 mb-1">🕐 {cafe.openingHours}</p>
+              )}
+              {cafe.phone && (
+                <p className="text-sm text-gray-600 mb-1">📞 {cafe.phone}</p>
+              )}
+              {cafe.website && (
+                <a 
+                  href={cafe.website} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-sm text-primary-600 hover:underline"
+                >
+                  🌐 Website
+                </a>
+              )}
+            </div>
+          </Popup>
+        </Marker>
+      ))}
+    </MapContainer>
+  );
+}
