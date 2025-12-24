@@ -4,6 +4,7 @@ import { Icon } from '@iconify/react';
 import type { Cafe } from '../services/cafeService';
 import { reverseGeocode } from '../services/cafeService';
 import { isFavorite, toggleFavorite, formatDistance, calculateDistance } from '../services/favoritesService';
+import Toast from './Toast';
 
 interface CafeDetailPanelProps {
   cafe: Cafe | null;
@@ -12,6 +13,51 @@ interface CafeDetailPanelProps {
   userLocation: [number, number] | null;
   language: 'id' | 'en';
   isOpen: boolean;
+}
+
+// Helper function to format cuisine string
+// Converts "coffee_shop" to "Coffee Shop"
+function formatCuisine(cuisine: string): string {
+  return cuisine
+    .replace(/_/g, ' ')
+    .replace(/;/g, ', ')
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+}
+
+// Helper function to format opening hours
+// Converts OSM format like "Mo-Th 07:00-23:00, Fr-Su 07:00-23:59" to readable format
+function formatOpeningHours(hours: string, language: 'id' | 'en'): string {
+  const dayMappings: Record<string, { id: string; en: string }> = {
+    'Mo': { id: 'Sen', en: 'Mon' },
+    'Tu': { id: 'Sel', en: 'Tue' },
+    'We': { id: 'Rab', en: 'Wed' },
+    'Th': { id: 'Kam', en: 'Thu' },
+    'Fr': { id: 'Jum', en: 'Fri' },
+    'Sa': { id: 'Sab', en: 'Sat' },
+    'Su': { id: 'Min', en: 'Sun' },
+    'PH': { id: 'Libur', en: 'Holidays' },
+  };
+
+  let formatted = hours;
+
+  // Replace day abbreviations
+  Object.entries(dayMappings).forEach(([osm, names]) => {
+    const regex = new RegExp(`\\b${osm}\\b`, 'g');
+    formatted = formatted.replace(regex, names[language]);
+  });
+
+  // Format time separators for readability
+  // Replace comma separator with line break for multi-schedule display
+  formatted = formatted.replace(/,\s*/g, '\n');
+
+  // Add "off" translation
+  if (language === 'id') {
+    formatted = formatted.replace(/\boff\b/gi, 'Tutup');
+  }
+
+  return formatted;
 }
 
 // Cache for geocoded addresses to avoid re-fetching
@@ -31,6 +77,11 @@ export default function CafeDetailPanel({
   const [isFav, setIsFav] = useState(() => cafe ? isFavorite(cafe.id) : false);
   const [geocodedAddresses, setGeocodedAddresses] = useState<Map<string, string | null>>(new Map(addressCache));
   const [, forceUpdate] = useState(0);
+  
+  // Toast state
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<'success' | 'error' | 'info' | 'warning'>('success');
+  const [showToast, setShowToast] = useState(false);
   
   // Update when cafe changes using a key pattern or direct check
   const currentFavStatus = cafe ? isFavorite(cafe.id) : false;
@@ -84,6 +135,16 @@ export default function CafeDetailPanel({
     if (cafe) {
       const newState = toggleFavorite(cafe);
       setIsFav(newState);
+      
+      // Show toast notification
+      if (newState) {
+        setToastMessage(language === 'id' ? `${cafe.name} ditambahkan ke favorit` : `${cafe.name} added to favorites`);
+        setToastType('success');
+      } else {
+        setToastMessage(language === 'id' ? `${cafe.name} dihapus dari favorit` : `${cafe.name} removed from favorites`);
+        setToastType('info');
+      }
+      setShowToast(true);
     }
   };
 
@@ -221,6 +282,7 @@ export default function CafeDetailPanel({
   };
 
   return (
+    <>
     <AnimatePresence mode="wait">
       {isOpen && cafe && (
         <>
@@ -271,7 +333,7 @@ export default function CafeDetailPanel({
                 <h2 className="text-xl font-bold truncate">{cafe.name}</h2>
                 {distance !== null && (
                   <p className="text-sm text-primary-500 font-medium mt-0.5 flex items-center gap-1">
-                    <Icon icon="mdi:map-marker" className="w-4 h-4" />
+                    <Icon icon="mdi:walk" className="w-4 h-4" />
                     {formatDistance(distance)} {text.fromYou}
                   </p>
                 )}
@@ -362,11 +424,12 @@ export default function CafeDetailPanel({
                   animate="visible"
                   className={`flex items-start gap-2 text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}
                 >
-                  <Icon icon="mdi:clock-outline" className="w-5 h-5 flex-shrink-0 text-primary-500" />
+                  <Icon icon="mdi:clock-outline" className="w-5 h-5 flex-shrink-0 text-primary-500 mt-0.5" />
                   <div>
                     <span className="font-medium">{text.openingHours}</span>
-                    <br />
-                    <span>{cafe.openingHours}</span>
+                    <div className="whitespace-pre-line mt-0.5">
+                      {formatOpeningHours(cafe.openingHours, language)}
+                    </div>
                   </div>
                 </motion.div>
               )}
@@ -397,7 +460,7 @@ export default function CafeDetailPanel({
                   className={`flex items-center gap-2 text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}
                 >
                   <Icon icon="mdi:coffee" className="w-5 h-5 flex-shrink-0 text-primary-500" />
-                  <span className="capitalize">{cafe.cuisine}</span>
+                  <span>{formatCuisine(cafe.cuisine)}</span>
                 </motion.div>
               )}
 
@@ -595,5 +658,16 @@ export default function CafeDetailPanel({
         </>
       )}
     </AnimatePresence>
+    
+    {/* Toast notification */}
+    <Toast
+      message={toastMessage}
+      type={toastType}
+      isVisible={showToast}
+      onClose={() => setShowToast(false)}
+      isDarkMode={isDarkMode}
+      duration={2500}
+    />
+  </>
   );
 }
