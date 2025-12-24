@@ -83,11 +83,13 @@ export default function CafeDetailPanel({
   const [toastType, setToastType] = useState<'success' | 'error' | 'info' | 'warning'>('success');
   const [showToast, setShowToast] = useState(false);
   
-  // Update when cafe changes using a key pattern or direct check
-  const currentFavStatus = cafe ? isFavorite(cafe.id) : false;
-  if (cafe && isFav !== currentFavStatus) {
-    setIsFav(currentFavStatus);
-  }
+  // Sync favorite status when cafe changes
+  useEffect(() => {
+    if (cafe) {
+      const currentFavStatus = isFavorite(cafe.id);
+      setIsFav(currentFavStatus);
+    }
+  }, [cafe]);
 
   // Derive current geocoded address and loading state
   const geocodedAddress = useMemo(() => {

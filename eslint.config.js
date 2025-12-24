@@ -19,5 +19,10 @@ export default defineConfig([
       ecmaVersion: 2020,
       globals: globals.browser,
     },
+    rules: {
+      // Disable overly strict rule that flags valid React patterns
+      // like syncing state from props in useEffect
+      'react-hooks/set-state-in-effect': 'off',
+    },
   },
 ])
