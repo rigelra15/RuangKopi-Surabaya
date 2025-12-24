@@ -72,7 +72,7 @@ export default function FavoritesPanel({
       y: 0,
       opacity: 1,
       transition: {
-        type: 'spring',
+        type: 'spring' as const,
         stiffness: 300,
         damping: 30,
       }
@@ -93,7 +93,7 @@ export default function FavoritesPanel({
       scale: 1,
       opacity: 1,
       transition: {
-        type: 'spring',
+        type: 'spring' as const,
         stiffness: 300,
         damping: 25,
       }
@@ -106,54 +106,55 @@ export default function FavoritesPanel({
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, x: -20 },
+    hidden: { opacity: 0, y: 10 },
     visible: (i: number) => ({
       opacity: 1,
-      x: 0,
+      y: 0,
       transition: {
-        type: 'spring',
+        type: 'spring' as const,
         stiffness: 300,
         damping: 25,
         delay: i * 0.05,
       }
     }),
-    exit: { opacity: 0, x: -20, transition: { duration: 0.15 } },
+    exit: { opacity: 0, y: -10, transition: { duration: 0.15 } },
   };
 
   return (
     <AnimatePresence mode="wait">
       {isOpen && (
         <>
-          {/* Backdrop */}
+          {/* Backdrop + Centering Container for Desktop */}
           <motion.div
             variants={backdropVariants}
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="fixed inset-0 bg-black/40 z-[1005] backdrop-blur-sm"
+            className="fixed inset-0 bg-black/40 z-[1005] backdrop-blur-sm md:flex md:items-center md:justify-center"
             onClick={onClose}
-          />
-
-          {/* Panel */}
-          <motion.div
-            variants={typeof window !== 'undefined' && window.innerWidth >= 768 ? desktopPanelVariants : panelVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            className={`
-              fixed z-[1006]
-              /* Mobile: bottom sheet */
-              bottom-0 left-0 right-0 max-h-[70vh]
-              md:bottom-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2
-              md:w-[480px] md:max-h-[600px] md:rounded-2xl
-              rounded-t-3xl
-              ${isDarkMode
-                ? 'bg-gray-900 text-white'
-                : 'bg-white text-gray-900'
-              }
-              shadow-2xl overflow-hidden flex flex-col
-            `}
           >
+            {/* Panel */}
+            <motion.div
+              variants={typeof window !== 'undefined' && window.innerWidth >= 768 ? desktopPanelVariants : panelVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              onClick={(e) => e.stopPropagation()}
+              className={`
+                /* Mobile: bottom sheet - positioned fixed */
+                fixed md:relative z-[1006] overflow-x-hidden
+                left-0 right-0 bottom-0 max-h-[70vh]
+                /* Desktop: use flexbox centering from parent, not transform */
+                md:left-auto md:right-auto md:bottom-auto md:top-auto
+                md:w-[480px] md:max-h-[600px] md:rounded-2xl
+                rounded-t-3xl
+                ${isDarkMode
+                  ? 'bg-gray-900 text-white'
+                  : 'bg-white text-gray-900'
+                }
+                shadow-2xl overflow-y-auto flex flex-col
+              `}
+            >
             {/* Drag handle (mobile) */}
             <div className="md:hidden flex justify-center pt-3 pb-1">
               <div className={`w-12 h-1.5 rounded-full ${isDarkMode ? 'bg-gray-600' : 'bg-gray-300'}`} />
@@ -294,6 +295,7 @@ export default function FavoritesPanel({
 
             {/* Safe area padding for mobile */}
             <div className="h-safe-area-inset-bottom md:hidden" />
+          </motion.div>
           </motion.div>
         </>
       )}
