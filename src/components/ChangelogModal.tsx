@@ -91,7 +91,7 @@ export default function ChangelogModal({
       scale: 1, 
       y: 0,
       transition: {
-        type: 'spring',
+        type: 'spring' as const,
         stiffness: 300,
         damping: 25,
       }
@@ -110,7 +110,7 @@ export default function ChangelogModal({
       opacity: 1,
       x: 0,
       transition: {
-        type: 'spring',
+        type: 'spring' as const,
         stiffness: 300,
         damping: 25,
         delay: i * 0.05,

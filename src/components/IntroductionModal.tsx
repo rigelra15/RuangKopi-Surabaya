@@ -74,7 +74,7 @@ export default function IntroductionModal({
       scale: 1, 
       y: 0,
       transition: {
-        type: 'spring',
+        type: 'spring' as const,
         stiffness: 300,
         damping: 25,
         staggerChildren: 0.05,
@@ -94,7 +94,7 @@ export default function IntroductionModal({
     visible: { 
       opacity: 1, 
       y: 0,
-      transition: { type: 'spring', stiffness: 300, damping: 25 }
+      transition: { type: 'spring' as const, stiffness: 300, damping: 25 }
     },
   };
 
@@ -104,7 +104,7 @@ export default function IntroductionModal({
       opacity: 1,
       scale: 1,
       transition: {
-        type: 'spring',
+        type: 'spring' as const,
         stiffness: 300,
         damping: 25,
         delay: i * 0.1,

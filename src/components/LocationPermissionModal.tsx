@@ -69,7 +69,7 @@ export default function LocationPermissionModal({
       scale: 1, 
       y: 0,
       transition: {
-        type: 'spring',
+        type: 'spring' as const,
         stiffness: 300,
         damping: 25,
         staggerChildren: 0.05,
@@ -89,7 +89,7 @@ export default function LocationPermissionModal({
     visible: { 
       opacity: 1, 
       y: 0,
-      transition: { type: 'spring', stiffness: 300, damping: 25 }
+      transition: { type: 'spring' as const, stiffness: 300, damping: 25 }
     },
   };
 
@@ -99,7 +99,7 @@ export default function LocationPermissionModal({
       opacity: 1,
       x: 0,
       transition: {
-        type: 'spring',
+        type: 'spring' as const,
         stiffness: 300,
         damping: 25,
         delay: 0.2 + i * 0.1,
