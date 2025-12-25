@@ -10,6 +10,7 @@ import IntroductionModal from './components/IntroductionModal';
 import AboutModal from './components/AboutModal';
 import ChangelogModal from './components/ChangelogModal';
 import LocationPermissionModal from './components/LocationPermissionModal';
+import StatsModal from './components/StatsModal';
 import { searchCafes, type Cafe } from './services/cafeService';
 import { calculateDistance } from './services/favoritesService';
 
@@ -47,6 +48,7 @@ function App() {
   const [showAboutModal, setShowAboutModal] = useState(false);
   const [showChangelogModal, setShowChangelogModal] = useState(false);
   const [showLocationModal, setShowLocationModal] = useState(false);
+  const [showStatsModal, setShowStatsModal] = useState(false);
 
   // Apply dark mode class to document
   useEffect(() => {
@@ -291,6 +293,7 @@ function App() {
         language={language}
         onToggleLanguage={handleToggleLanguage}
         onOpenAbout={() => setShowAboutModal(true)}
+        onOpenStats={() => setShowStatsModal(true)}
       />
 
       {/* Cafe count indicator - hidden on mobile (overlaps search), visible on desktop below title */}
@@ -371,6 +374,14 @@ function App() {
         isOpen={showLocationModal}
         onClose={() => setShowLocationModal(false)}
         onRequestLocation={handleMyLocation}
+      />
+
+      {/* Stats Modal */}
+      <StatsModal
+        isDarkMode={isDarkMode}
+        language={language}
+        isOpen={showStatsModal}
+        onClose={() => setShowStatsModal(false)}
       />
     </div>
   );

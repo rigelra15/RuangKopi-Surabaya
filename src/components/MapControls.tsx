@@ -8,6 +8,7 @@ interface MapControlsProps {
   language: 'id' | 'en';
   onToggleLanguage: () => void;
   onOpenAbout: () => void;
+  onOpenStats: () => void;
 }
 
 export default function MapControls({
@@ -17,6 +18,7 @@ export default function MapControls({
   language,
   onToggleLanguage,
   onOpenAbout,
+  onOpenStats,
 }: MapControlsProps) {
   const [hoveredButton, setHoveredButton] = useState<string | null>(null);
 
@@ -49,6 +51,25 @@ export default function MapControls({
   return (
     <div className="absolute bottom-6 sm:bottom-8 left-1/2 transform -translate-x-1/2 z-[1000]">
       <div className="flex items-center gap-2 sm:gap-3">
+        {/* Stats Button */}
+        <button
+          className={buttonBaseClass}
+          onClick={onOpenStats}
+          onMouseEnter={() => setHoveredButton('stats')}
+          onMouseLeave={() => setHoveredButton(null)}
+          aria-label={language === 'id' ? 'Statistik' : 'Statistics'}
+        >
+          <Icon icon="mdi:chart-box" className="w-5 h-5 sm:w-6 sm:h-6" />
+          
+          {/* Tooltip */}
+          {hoveredButton === 'stats' && (
+            <div className={tooltipClass}>
+              {language === 'id' ? 'Statistik' : 'Statistics'}
+              <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
+            </div>
+          )}
+        </button>
+
         {/* Language Toggle Button */}
         <button
           className={buttonBaseClass}
