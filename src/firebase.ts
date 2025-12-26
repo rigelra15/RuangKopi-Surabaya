@@ -6,13 +6,13 @@ import { getDatabase } from "firebase/database";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "REDACTED_API_KEY",
-  authDomain: "ruangkopi-surabaya.firebaseapp.com",
-  databaseURL: "https://ruangkopi-surabaya-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "ruangkopi-surabaya",
-  storageBucket: "ruangkopi-surabaya.firebasestorage.app",
-  messagingSenderId: "878252848574",
-  appId: "1:878252848574:web:50a9557f4cc91cf75a35ef"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
 // Initialize Firebase
