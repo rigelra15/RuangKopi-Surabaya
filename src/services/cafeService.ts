@@ -20,6 +20,12 @@ export interface Cafe {
   hasTakeaway?: boolean;
   hasAirConditioning?: boolean;
   operator?: string;
+  // Menu link
+  menuUrl?: string;
+  // Flag for custom cafes (user-submitted)
+  isCustom?: boolean;
+  // Flag for overridden cafes (Overpass + user edits)
+  hasOverride?: boolean;
 }
 
 // Surabaya bounding box
