@@ -5,6 +5,7 @@ import type { Cafe } from '../services/cafeService';
 import { reverseGeocode } from '../services/cafeService';
 import { isFavorite, toggleFavorite, formatDistance, calculateDistance } from '../services/favoritesService';
 import Toast from './Toast';
+import ReportIssueModal from './ReportIssueModal';
 
 interface CafeDetailPanelProps {
   cafe: Cafe | null;
@@ -82,6 +83,9 @@ export default function CafeDetailPanel({
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState<'success' | 'error' | 'info' | 'warning'>('success');
   const [showToast, setShowToast] = useState(false);
+  
+  // Report modal state
+  const [showReportModal, setShowReportModal] = useState(false);
   
   // Sync favorite status when cafe changes
   useEffect(() => {
@@ -194,6 +198,12 @@ export default function CafeDetailPanel({
       smokingOutside: 'Merokok di Luar',
       airConditioning: 'AC',
       brand: 'Brand',
+      // New
+      menu: 'Lihat Menu',
+      reportIssue: 'Laporkan Masalah',
+      orderTransport: 'Pesan Transportasi',
+      gojek: 'Gojek',
+      grab: 'Grab',
     },
     en: {
       directions: 'Directions',
@@ -215,6 +225,12 @@ export default function CafeDetailPanel({
       smokingOutside: 'Smoking Outside',
       airConditioning: 'Air Conditioning',
       brand: 'Brand',
+      // New
+      menu: 'View Menu',
+      reportIssue: 'Report Issue',
+      orderTransport: 'Order Transport',
+      gojek: 'Gojek',
+      grab: 'Grab',
     },
   };
 
@@ -332,7 +348,21 @@ export default function CafeDetailPanel({
                 transition={{ type: 'spring', delay: 0.1 }}
                 className="flex-1 pr-12"
               >
-                <h2 className="text-xl font-bold truncate">{cafe.name}</h2>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-xl font-bold truncate">{cafe.name}</h2>
+                  {cafe.isCustom && (
+                    <span className={`
+                      inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium
+                      ${isDarkMode 
+                        ? 'bg-primary-500/20 text-primary-400 border border-primary-500/30' 
+                        : 'bg-primary-100 text-primary-700 border border-primary-200'
+                      }
+                    `}>
+                      <Icon icon="mdi:account-plus" className="w-3 h-3" />
+                      Custom
+                    </span>
+                  )}
+                </div>
                 {distance !== null && (
                   <p className="text-sm text-primary-500 font-medium mt-0.5 flex items-center gap-1">
                     <Icon icon="mdi:walk" className="w-4 h-4" />
@@ -588,70 +618,153 @@ export default function CafeDetailPanel({
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
               className={`
-                grid grid-cols-2 gap-2 p-4 border-t
+                p-4 border-t space-y-2
                 ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}
               `}
             >
-              {/* Directions button */}
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={handleGetDirections}
-                className="
-                  flex items-center justify-center gap-2 py-3 px-4 rounded-xl
-                  bg-primary-500 hover:bg-primary-600 text-white
-                  font-medium transition-colors shadow-lg shadow-primary-500/25
-                "
-              >
-                <Icon icon="mdi:directions" className="w-5 h-5" />
-                {text.directions}
-              </motion.button>
+              {/* Primary actions */}
+              <div className="grid grid-cols-2 gap-2">
+                {/* Directions button */}
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleGetDirections}
+                  className="
+                    flex items-center justify-center gap-2 py-3 px-4 rounded-xl
+                    bg-primary-500 hover:bg-primary-600 text-white
+                    font-medium transition-colors shadow-lg shadow-primary-500/25
+                  "
+                >
+                  <Icon icon="mdi:directions" className="w-5 h-5" />
+                  {text.directions}
+                </motion.button>
 
-              {/* Website or call button */}
-              {cafe.website ? (
+                {/* Website or call button */}
+                {cafe.website ? (
+                  <motion.a
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    href={cafe.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`
+                      flex items-center justify-center gap-2 py-3 px-4 rounded-xl
+                      font-medium transition-colors
+                      ${isDarkMode
+                        ? 'bg-gray-700 hover:bg-gray-600 text-white'
+                        : 'bg-gray-100 hover:bg-gray-200 text-gray-800'
+                      }
+                    `}
+                  >
+                    <Icon icon="mdi:web" className="w-5 h-5" />
+                    {text.website}
+                  </motion.a>
+                ) : cafe.phone ? (
+                  <motion.a
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    href={`tel:${cafe.phone}`}
+                    className={`
+                      flex items-center justify-center gap-2 py-3 px-4 rounded-xl
+                      font-medium transition-colors
+                      ${isDarkMode
+                        ? 'bg-gray-700 hover:bg-gray-600 text-white'
+                        : 'bg-gray-100 hover:bg-gray-200 text-gray-800'
+                      }
+                    `}
+                  >
+                    <Icon icon="mdi:phone" className="w-5 h-5" />
+                    {text.call}
+                  </motion.a>
+                ) : (
+                  <div className={`
+                    flex items-center justify-center py-3 px-4 rounded-xl
+                    ${isDarkMode ? 'bg-gray-800 text-gray-500' : 'bg-gray-50 text-gray-400'}
+                  `}>
+                    <span className="text-sm">—</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Secondary actions */}
+              <div className="flex gap-2">
+                {/* Menu link */}
+                {cafe.menuUrl && (
+                  <motion.a
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    href={cafe.menuUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`
+                      flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl
+                      text-sm font-medium transition-colors
+                      ${isDarkMode
+                        ? 'bg-amber-500/20 hover:bg-amber-500/30 text-amber-400'
+                        : 'bg-amber-100 hover:bg-amber-200 text-amber-700'
+                      }
+                    `}
+                  >
+                    <Icon icon="mdi:silverware-fork-knife" className="w-4 h-4" />
+                    {text.menu}
+                  </motion.a>
+                )}
+
+                {/* Report issue button */}
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setShowReportModal(true)}
+                  className={`
+                    ${cafe.menuUrl ? '' : 'flex-1'} flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl
+                    text-sm font-medium transition-colors
+                    ${isDarkMode
+                      ? 'bg-gray-800 hover:bg-gray-700 text-gray-400'
+                      : 'bg-gray-50 hover:bg-gray-100 text-gray-500'
+                    }
+                  `}
+                >
+                  <Icon icon="mdi:flag-outline" className="w-4 h-4" />
+                  {text.reportIssue}
+                </motion.button>
+              </div>
+
+              {/* Ride-hailing apps */}
+              <div className="flex gap-2 pt-2">
+                {/* Gojek button */}
                 <motion.a
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  href={cafe.website}
+                  href={`https://gojek.link/goride?destLatLong=${cafe.lat},${cafe.lon}&destName=${encodeURIComponent(cafe.name)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className={`
-                    flex items-center justify-center gap-2 py-3 px-4 rounded-xl
-                    font-medium transition-colors
-                    ${isDarkMode
-                      ? 'bg-gray-700 hover:bg-gray-600 text-white'
-                      : 'bg-gray-100 hover:bg-gray-200 text-gray-800'
-                    }
+                    flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl
+                    text-sm font-medium transition-colors
+                    bg-[#00AA13] hover:bg-[#009910] text-white
                   `}
                 >
-                  <Icon icon="mdi:web" className="w-5 h-5" />
-                  {text.website}
+                  <Icon icon="simple-icons:gojek" className="w-4 h-4" />
+                  {text.gojek}
                 </motion.a>
-              ) : cafe.phone ? (
+
+                {/* Grab button */}
                 <motion.a
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  href={`tel:${cafe.phone}`}
+                  href={`https://grab.onelink.me/2695613898?af_dp=grab://open?dropOffLatitude=${cafe.lat}&dropOffLongitude=${cafe.lon}&dropOffName=${encodeURIComponent(cafe.name)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className={`
-                    flex items-center justify-center gap-2 py-3 px-4 rounded-xl
-                    font-medium transition-colors
-                    ${isDarkMode
-                      ? 'bg-gray-700 hover:bg-gray-600 text-white'
-                      : 'bg-gray-100 hover:bg-gray-200 text-gray-800'
-                    }
+                    flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl
+                    text-sm font-medium transition-colors
+                    bg-[#00B14F] hover:bg-[#009943] text-white
                   `}
                 >
-                  <Icon icon="mdi:phone" className="w-5 h-5" />
-                  {text.call}
+                  <Icon icon="simple-icons:grab" className="w-4 h-4" />
+                  {text.grab}
                 </motion.a>
-              ) : (
-                <div className={`
-                  flex items-center justify-center py-3 px-4 rounded-xl
-                  ${isDarkMode ? 'bg-gray-800 text-gray-500' : 'bg-gray-50 text-gray-400'}
-                `}>
-                  <span className="text-sm">—</span>
-                </div>
-              )}
+              </div>
             </motion.div>
 
             {/* Safe area padding for mobile */}
@@ -660,6 +773,23 @@ export default function CafeDetailPanel({
         </>
       )}
     </AnimatePresence>
+    
+    {/* Report Issue Modal */}
+    {cafe && (
+      <ReportIssueModal
+        isOpen={showReportModal}
+        onClose={() => setShowReportModal(false)}
+        isDarkMode={isDarkMode}
+        language={language}
+        cafeId={cafe.id}
+        cafeName={cafe.name}
+        onSuccess={() => {
+          setToastMessage(language === 'id' ? 'Terima kasih atas laporannya!' : 'Thanks for your report!');
+          setToastType('success');
+          setShowToast(true);
+        }}
+      />
+    )}
     
     {/* Toast notification */}
     <Toast
