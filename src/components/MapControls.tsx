@@ -9,6 +9,7 @@ interface MapControlsProps {
   onToggleLanguage: () => void;
   onOpenAbout: () => void;
   onOpenStats: () => void;
+  onOpenAddCafe: () => void;
 }
 
 export default function MapControls({
@@ -19,6 +20,7 @@ export default function MapControls({
   onToggleLanguage,
   onOpenAbout,
   onOpenStats,
+  onOpenAddCafe,
 }: MapControlsProps) {
   const [hoveredButton, setHoveredButton] = useState<string | null>(null);
 
@@ -65,6 +67,25 @@ export default function MapControls({
           {hoveredButton === 'stats' && (
             <div className={tooltipClass}>
               {language === 'id' ? 'Statistik' : 'Statistics'}
+              <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
+            </div>
+          )}
+        </button>
+
+        {/* Add Cafe Button */}
+        <button
+          className={buttonBaseClass}
+          onClick={onOpenAddCafe}
+          onMouseEnter={() => setHoveredButton('addCafe')}
+          onMouseLeave={() => setHoveredButton(null)}
+          aria-label={language === 'id' ? 'Tambah Tempat' : 'Add Place'}
+        >
+          <Icon icon="mdi:plus" className="w-5 h-5 sm:w-6 sm:h-6" />
+          
+          {/* Tooltip */}
+          {hoveredButton === 'addCafe' && (
+            <div className={tooltipClass}>
+              {language === 'id' ? 'Tambah Tempat' : 'Add Place'}
               <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
             </div>
           )}
