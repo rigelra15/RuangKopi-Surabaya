@@ -1,55 +1,141 @@
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Icon } from '@iconify/react';
 
 interface LocationPermissionModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onRequestLocation: () => void;
   isDarkMode: boolean;
   language: 'id' | 'en';
+  onLocationGranted: (position: [number, number]) => void;
+  onLocationDenied?: () => void;
 }
 
 export default function LocationPermissionModal({
-  isOpen,
-  onClose,
-  onRequestLocation,
   isDarkMode,
   language,
+  onLocationGranted,
+  onLocationDenied,
 }: LocationPermissionModalProps) {
-
-  const handleEnableLocation = () => {
-    onClose();
-    onRequestLocation();
-  };
+  const [isOpen, setIsOpen] = useState(false);
+  const [isRequesting, setIsRequesting] = useState(false);
+  const [hasChecked, setHasChecked] = useState(false);
 
   const t = {
     id: {
       title: 'Izinkan Akses Lokasi',
-      description: 'Untuk menggunakan fitur filter jarak, kami membutuhkan akses ke lokasi Anda.',
+      subtitle: 'Untuk pengalaman terbaik',
+      description: 'Izinkan RuangKopi mengakses lokasi Anda untuk menampilkan cafe terdekat dan menghitung jarak.',
       benefits: [
-        'Filter cafe berdasarkan jarak dari Anda',
+        'Temukan cafe terdekat dari posisi Anda',
         'Lihat jarak ke setiap cafe',
-        'Dapatkan rute navigasi yang akurat',
+        'Dapatkan petunjuk arah dengan mudah',
       ],
       privacy: 'Lokasi Anda hanya digunakan secara lokal dan tidak akan disimpan.',
-      enableButton: 'Aktifkan Lokasi',
-      laterButton: 'Nanti Saja',
+      allow: 'Izinkan Lokasi',
+      later: 'Nanti Saja',
+      requesting: 'Meminta izin...',
     },
     en: {
       title: 'Allow Location Access',
-      description: 'To use the distance filter feature, we need access to your location.',
+      subtitle: 'For the best experience',
+      description: 'Allow RuangKopi to access your location to show nearby cafes and calculate distances.',
       benefits: [
-        'Filter cafes by distance from you',
+        'Find cafes nearest to your position',
         'See distance to each cafe',
-        'Get accurate navigation routes',
+        'Get directions easily',
       ],
       privacy: 'Your location is only used locally and will not be stored.',
-      enableButton: 'Enable Location',
-      laterButton: 'Maybe Later',
+      allow: 'Allow Location',
+      later: 'Maybe Later',
+      requesting: 'Requesting permission...',
     },
   };
 
-  const content = t[language];
+  const text = t[language];
+
+  const requestLocation = () => {
+    setIsRequesting(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const coords: [number, number] = [position.coords.latitude, position.coords.longitude];
+        onLocationGranted(coords);
+        setIsOpen(false);
+        setIsRequesting(false);
+      },
+      (error) => {
+        console.error('Location error:', error);
+        setIsRequesting(false);
+        setIsOpen(false);
+        onLocationDenied?.();
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 60000,
+      }
+    );
+  };
+
+  // Check if already has permission or denied
+  useEffect(() => {
+    const checkPermission = async () => {
+      // Check if already dismissed this session
+      const dismissed = sessionStorage.getItem('location_permission_dismissed');
+      if (dismissed === 'true') {
+        setHasChecked(true);
+        return;
+      }
+
+      // Check if geolocation is available
+      if (!navigator.geolocation) {
+        setHasChecked(true);
+        return;
+      }
+
+      // Check permission status
+      if (navigator.permissions) {
+        try {
+          const status = await navigator.permissions.query({ name: 'geolocation' });
+          
+          if (status.state === 'granted') {
+            // Already granted, get location immediately
+            setHasChecked(true);
+            requestLocation();
+          } else if (status.state === 'prompt') {
+            // Need to ask user
+            setIsOpen(true);
+            setHasChecked(true);
+          } else {
+            // Denied
+            setHasChecked(true);
+            onLocationDenied?.();
+          }
+        } catch {
+          // Fallback: show modal
+          setIsOpen(true);
+          setHasChecked(true);
+        }
+      } else {
+        // Fallback: show modal
+        setIsOpen(true);
+        setHasChecked(true);
+      }
+    };
+
+    // Small delay to let the page load first
+    const timer = setTimeout(checkPermission, 1000);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleAllow = () => {
+    requestLocation();
+  };
+
+  const handleLater = () => {
+    sessionStorage.setItem('location_permission_dismissed', 'true');
+    setIsOpen(false);
+    onLocationDenied?.();
+  };
 
   // Animation variants
   const backdropVariants = {
@@ -62,7 +148,7 @@ export default function LocationPermissionModal({
     hidden: { 
       opacity: 0, 
       scale: 0.9, 
-      y: 20,
+      y: 50,
     },
     visible: { 
       opacity: 1, 
@@ -72,45 +158,22 @@ export default function LocationPermissionModal({
         type: 'spring' as const,
         stiffness: 300,
         damping: 25,
-        staggerChildren: 0.05,
-        delayChildren: 0.1,
       }
     },
     exit: { 
       opacity: 0, 
       scale: 0.95, 
-      y: 10,
+      y: 20,
       transition: { duration: 0.2 }
     },
   };
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 10 },
-    visible: { 
-      opacity: 1, 
-      y: 0,
-      transition: { type: 'spring' as const, stiffness: 300, damping: 25 }
-    },
-  };
-
-  const benefitVariants = {
-    hidden: { opacity: 0, x: -20 },
-    visible: (i: number) => ({
-      opacity: 1,
-      x: 0,
-      transition: {
-        type: 'spring' as const,
-        stiffness: 300,
-        damping: 25,
-        delay: 0.2 + i * 0.1,
-      }
-    }),
-  };
+  if (!hasChecked) return null;
 
   return (
-    <AnimatePresence mode="wait">
+    <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[3000] flex items-end md:items-center justify-center p-4">
           {/* Backdrop */}
           <motion.div
             variants={backdropVariants}
@@ -121,7 +184,7 @@ export default function LocationPermissionModal({
               absolute inset-0 backdrop-blur-sm
               ${isDarkMode ? 'bg-black/70' : 'bg-black/50'}
             `}
-            onClick={onClose}
+            onClick={handleLater}
           />
 
           {/* Modal */}
@@ -131,7 +194,7 @@ export default function LocationPermissionModal({
             animate="visible"
             exit="exit"
             className={`
-              relative w-full max-w-sm rounded-2xl overflow-hidden
+              relative w-full max-w-sm rounded-t-3xl md:rounded-2xl overflow-hidden
               ${isDarkMode
                 ? 'bg-gray-900 border border-gray-800'
                 : 'bg-white border border-gray-100'
@@ -139,6 +202,11 @@ export default function LocationPermissionModal({
               shadow-2xl
             `}
           >
+            {/* Drag handle for mobile */}
+            <div className="md:hidden flex justify-center pt-3">
+              <div className={`w-10 h-1 rounded-full ${isDarkMode ? 'bg-gray-700' : 'bg-gray-300'}`} />
+            </div>
+
             {/* Header with icon */}
             <div className="px-6 pt-6 pb-4 text-center">
               <motion.div
@@ -146,13 +214,16 @@ export default function LocationPermissionModal({
                 animate={{ scale: 1, rotate: 0 }}
                 transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.1 }}
                 className={`
-                  inline-flex items-center justify-center w-16 h-16 rounded-full mb-4
-                  ${isDarkMode ? 'bg-primary-600/20' : 'bg-primary-50'}
+                  inline-flex items-center justify-center w-20 h-20 rounded-full mb-4
+                  ${isDarkMode 
+                    ? 'bg-gradient-to-br from-primary-500/30 to-primary-600/20' 
+                    : 'bg-gradient-to-br from-primary-100 to-primary-200'
+                  }
                 `}
               >
                 <motion.div
                   animate={{ 
-                    scale: [1, 1.1, 1],
+                    scale: [1, 1.15, 1],
                   }}
                   transition={{ 
                     repeat: Infinity, 
@@ -162,108 +233,105 @@ export default function LocationPermissionModal({
                 >
                   <Icon
                     icon="mdi:map-marker-radius"
-                    className={`w-8 h-8 ${isDarkMode ? 'text-primary-400' : 'text-primary-600'}`}
+                    className={`w-10 h-10 ${isDarkMode ? 'text-primary-400' : 'text-primary-600'}`}
                   />
                 </motion.div>
               </motion.div>
-              <motion.h2
-                variants={itemVariants}
-                className={`
-                  text-xl font-bold
-                  ${isDarkMode ? 'text-white' : 'text-gray-900'}
-                `}
-              >
-                {content.title}
-              </motion.h2>
-              <motion.p
-                variants={itemVariants}
-                className={`
-                  mt-2 text-sm
-                  ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}
-                `}
-              >
-                {content.description}
-              </motion.p>
+              <h2 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                {text.title}
+              </h2>
+              <p className={`mt-1 text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                {text.subtitle}
+              </p>
+              <p className={`mt-2 text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                {text.description}
+              </p>
             </div>
 
             {/* Benefits list */}
-            <div className="px-6 pb-4">
-              <ul className="space-y-2">
-                {content.benefits.map((benefit, index) => (
+            <div className={`mx-6 mb-4 p-4 rounded-xl ${isDarkMode ? 'bg-gray-800/50' : 'bg-gray-50'}`}>
+              <ul className="space-y-3">
+                {text.benefits.map((benefit, index) => (
                   <motion.li
                     key={index}
-                    custom={index}
-                    variants={benefitVariants}
-                    initial="hidden"
-                    animate="visible"
-                    className={`
-                      flex items-center gap-2 text-sm
-                      ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}
-                    `}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.2 + index * 0.1 }}
+                    className="flex items-center gap-3"
                   >
-                    <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ delay: 0.3 + index * 0.1, type: 'spring', stiffness: 300 }}
-                    >
-                      <Icon icon="mdi:check-circle" className="w-5 h-5 text-primary-500 flex-shrink-0" />
-                    </motion.div>
-                    {benefit}
+                    <div className={`
+                      w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0
+                      ${isDarkMode ? 'bg-primary-500/20 text-primary-400' : 'bg-primary-100 text-primary-600'}
+                    `}>
+                      <Icon icon="mdi:check" className="w-4 h-4" />
+                    </div>
+                    <span className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                      {benefit}
+                    </span>
                   </motion.li>
                 ))}
               </ul>
             </div>
 
             {/* Privacy note */}
-            <motion.div 
-              variants={itemVariants}
-              className={`mx-6 mb-4 p-3 rounded-lg ${isDarkMode ? 'bg-gray-800' : 'bg-gray-50'}`}
-            >
+            <div className={`mx-6 mb-4 p-3 rounded-lg ${isDarkMode ? 'bg-gray-800' : 'bg-gray-50'}`}>
               <p className={`flex items-start gap-2 text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                 <Icon icon="mdi:shield-lock-outline" className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                {content.privacy}
+                {text.privacy}
               </p>
-            </motion.div>
+            </div>
 
             {/* Action buttons */}
-            <div className="px-6 pb-6 space-y-2">
+            <div className="px-6 pb-6 space-y-3">
               <motion.button
-                variants={itemVariants}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={handleEnableLocation}
-                className="
-                  w-full py-3 px-4 rounded-xl
+                onClick={handleAllow}
+                disabled={isRequesting}
+                className={`
+                  w-full py-3.5 px-4 rounded-xl
                   bg-primary-500 hover:bg-primary-600 text-white
                   font-semibold transition-colors
                   shadow-lg shadow-primary-500/25
                   flex items-center justify-center gap-2
-                "
+                  disabled:opacity-70 disabled:cursor-not-allowed
+                `}
               >
-                <motion.div
-                  animate={{ rotate: [0, 360] }}
-                  transition={{ repeat: Infinity, duration: 2, ease: 'linear' }}
-                >
-                  <Icon icon="mdi:crosshairs-gps" className="w-5 h-5" />
-                </motion.div>
-                {content.enableButton}
+                {isRequesting ? (
+                  <>
+                    <Icon icon="mdi:loading" className="w-5 h-5 animate-spin" />
+                    {text.requesting}
+                  </>
+                ) : (
+                  <>
+                    <motion.div
+                      animate={{ rotate: [0, 360] }}
+                      transition={{ repeat: Infinity, duration: 3, ease: 'linear' }}
+                    >
+                      <Icon icon="mdi:crosshairs-gps" className="w-5 h-5" />
+                    </motion.div>
+                    {text.allow}
+                  </>
+                )}
               </motion.button>
-              <motion.button
-                variants={itemVariants}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={onClose}
+              <button
+                onClick={handleLater}
+                disabled={isRequesting}
                 className={`
                   w-full py-3 px-4 rounded-xl font-medium transition-colors
                   ${isDarkMode
                     ? 'bg-gray-800 hover:bg-gray-700 text-gray-300'
                     : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
                   }
+                  disabled:opacity-50
                 `}
               >
-                {content.laterButton}
-              </motion.button>
+                {text.later}
+              </button>
             </div>
+
+            {/* Safe area for mobile */}
+            <div className="h-safe-area-inset-bottom" />
           </motion.div>
         </div>
       )}
