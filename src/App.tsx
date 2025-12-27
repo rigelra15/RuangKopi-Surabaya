@@ -11,8 +11,10 @@ import AboutModal from './components/AboutModal';
 import ChangelogModal from './components/ChangelogModal';
 import LocationPermissionModal from './components/LocationPermissionModal';
 import StatsModal from './components/StatsModal';
-import { searchCafes, type Cafe } from './services/cafeService';
+import AddCafeModal from './components/AddCafeModal';
+import { type Cafe } from './services/cafeService';
 import { calculateDistance } from './services/favoritesService';
+import { getCustomCafes, getCafeOverrides, type CustomCafe } from './services/customCafeService';
 
 function App() {
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -37,7 +39,6 @@ function App() {
 
   // Location and search state
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
-  const [cafes, setCafes] = useState<Cafe[]>([]);
   const [selectedCafe, setSelectedCafe] = useState<Cafe | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   
@@ -47,8 +48,11 @@ function App() {
   const [showCafeDetail, setShowCafeDetail] = useState(false);
   const [showAboutModal, setShowAboutModal] = useState(false);
   const [showChangelogModal, setShowChangelogModal] = useState(false);
-  const [showLocationModal, setShowLocationModal] = useState(false);
   const [showStatsModal, setShowStatsModal] = useState(false);
+  const [showAddCafeModal, setShowAddCafeModal] = useState(false);
+  const [customCafes, setCustomCafes] = useState<CustomCafe[]>([]);
+  const [hiddenCafeIds, setHiddenCafeIds] = useState<Set<string>>(new Set());
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Apply dark mode class to document
   useEffect(() => {
@@ -65,29 +69,70 @@ function App() {
     localStorage.setItem('language', language);
   }, [language]);
 
-  // Load initial cafes on mount
+  // Load cafes from Spreadsheet on mount
   useEffect(() => {
-    const loadInitialCafes = async () => {
+    const loadCafes = async () => {
       setIsSearching(true);
       try {
-        const results = await searchCafes('');
-        setCafes(results);
+        const cafesData = await getCustomCafes();
+        setCustomCafes(cafesData);
       } catch (error) {
         console.error('Error loading cafes:', error);
       } finally {
         setIsSearching(false);
       }
     };
-    loadInitialCafes();
+    loadCafes();
   }, []);
+
+  // Load hidden cafe IDs from overrides
+  useEffect(() => {
+    const loadHiddenCafes = async () => {
+      try {
+        const overrides = await getCafeOverrides();
+        const hidden = new Set<string>();
+        Object.entries(overrides).forEach(([id, override]) => {
+          if (override.isHidden) {
+            hidden.add(id);
+          }
+        });
+        setHiddenCafeIds(hidden);
+      } catch (error) {
+        console.error('Error loading hidden cafes:', error);
+      }
+    };
+    loadHiddenCafes();
+  }, []);
+
+  // All cafes from Spreadsheet (filter out hidden ones)
+  const allCafes = useMemo(() => {
+    // Convert custom cafes to standard Cafe format
+    const convertedCafes: Cafe[] = customCafes.map(cc => ({
+      ...cc,
+      id: cc.id,
+    }));
+    // Filter out hidden cafes
+    return convertedCafes.filter(cafe => !hiddenCafeIds.has(cafe.id));
+  }, [customCafes, hiddenCafeIds]);
+
+  // Filter cafes by search query
+  const searchFilteredCafes = useMemo(() => {
+    if (!searchQuery.trim()) return allCafes;
+    const query = searchQuery.toLowerCase();
+    return allCafes.filter(cafe =>
+      cafe.name.toLowerCase().includes(query) ||
+      cafe.address?.toLowerCase().includes(query) ||
+      cafe.brand?.toLowerCase().includes(query)
+    );
+  }, [allCafes, searchQuery]);
 
   // Filter cafes by distance
   const filteredCafes = useMemo(() => {
     if (!distanceFilter || !userLocation) {
-      return cafes;
+      return searchFilteredCafes;
     }
     
-    return cafes.filter(cafe => {
+    return searchFilteredCafes.filter(cafe => {
       const distance = calculateDistance(
         userLocation[0],
         userLocation[1],
@@ -96,7 +141,7 @@ function App() {
       );
       return distance <= distanceFilter;
     });
-  }, [cafes, distanceFilter, userLocation]);
+  }, [searchFilteredCafes, distanceFilter, userLocation]);
 
   const handleToggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
@@ -135,23 +180,14 @@ function App() {
     }
   }, [language]);
 
-  const handleSearch = useCallback(async (query: string) => {
-    setIsSearching(true);
-    try {
-      const results = await searchCafes(query);
-      setCafes(results);
-    } catch (error) {
-      console.error('Error searching cafes:', error);
-    } finally {
-      setIsSearching(false);
-    }
+  const handleSearch = useCallback((query: string) => {
+    setSearchQuery(query);
   }, []);
 
   // Handle when user selects a geocoded location
   const handleAddressFound = useCallback((_lat: number, _lon: number, nearbyCafes: Cafe[]) => {
-    // If there are cafes near the location, show them
+    // If there are cafes near the location, show the first one
     if (nearbyCafes.length > 0) {
-      setCafes(nearbyCafes);
       // Select the first cafe to center the map
       setSelectedCafe(nearbyCafes[0]);
       setShowCafeDetail(true);
@@ -224,17 +260,9 @@ function App() {
       <SearchBox 
         isDarkMode={isDarkMode} 
         onSearch={handleSearch}
-        onClear={async () => {
-          // Reset to all cafes when search is cleared
-          setIsSearching(true);
-          try {
-            const results = await searchCafes('');
-            setCafes(results);
-          } catch (error) {
-            console.error('Error loading cafes:', error);
-          } finally {
-            setIsSearching(false);
-          }
+        onClear={() => {
+          // Reset search query when cleared
+          setSearchQuery('');
         }}
         searchResults={filteredCafes}
         isLoading={isSearching}
@@ -280,7 +308,7 @@ function App() {
             currentDistance={distanceFilter}
             onDistanceChange={setDistanceFilter}
             disabled={!userLocation}
-            onDisabledClick={() => setShowLocationModal(true)}
+            onDisabledClick={handleMyLocation}
           />
         </div>
       </div>
@@ -294,6 +322,7 @@ function App() {
         onToggleLanguage={handleToggleLanguage}
         onOpenAbout={() => setShowAboutModal(true)}
         onOpenStats={() => setShowStatsModal(true)}
+        onOpenAddCafe={() => setShowAddCafeModal(true)}
       />
 
       {/* Cafe count indicator - hidden on mobile (overlaps search), visible on desktop below title */}
@@ -367,13 +396,16 @@ function App() {
         onClose={() => setShowChangelogModal(false)}
       />
 
-      {/* Location Permission Modal */}
+      {/* Location Permission Modal - Auto-shows on first visit */}
       <LocationPermissionModal
         isDarkMode={isDarkMode}
         language={language}
-        isOpen={showLocationModal}
-        onClose={() => setShowLocationModal(false)}
-        onRequestLocation={handleMyLocation}
+        onLocationGranted={(coords) => {
+          setUserLocation(coords);
+        }}
+        onLocationDenied={() => {
+          console.log('Location permission denied');
+        }}
       />
 
       {/* Stats Modal */}
@@ -382,6 +414,21 @@ function App() {
         language={language}
         isOpen={showStatsModal}
         onClose={() => setShowStatsModal(false)}
+      />
+
+      {/* Add Cafe Modal */}
+      <AddCafeModal
+        isDarkMode={isDarkMode}
+        language={language}
+        isOpen={showAddCafeModal}
+        onClose={() => setShowAddCafeModal(false)}
+        userLocation={userLocation ? { lat: userLocation[0], lon: userLocation[1] } : null}
+        onSuccess={async () => {
+          // Refresh cafes from spreadsheet
+          console.log('New cafe added successfully, refreshing...');
+          const updatedCafes = await getCustomCafes();
+          setCustomCafes(updatedCafes);
+        }}
       />
     </div>
   );
