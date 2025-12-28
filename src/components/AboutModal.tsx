@@ -58,7 +58,7 @@ export default function AboutModal({
       contributeText: 'Tertarik untuk berkontribusi? Kunjungi repository GitHub kami!',
       githubButton: 'Lihat di GitHub',
       dataSource: 'Sumber Data',
-      dataSourceText: 'Data cafe diambil dari OpenStreetMap melalui Overpass API.',
+      dataSourceText: 'Data cafe dikurasi dan dikelola secara manual melalui sistem backend khusus.',
       changelog: 'Lihat Changelog',
       credit: 'Dibuat oleh',
       close: 'Tutup',
@@ -80,7 +80,7 @@ export default function AboutModal({
       contributeText: 'Interested in contributing? Visit our GitHub repository!',
       githubButton: 'View on GitHub',
       dataSource: 'Data Source',
-      dataSourceText: 'Cafe data is fetched from OpenStreetMap via Overpass API.',
+      dataSourceText: 'Cafe data is curated and managed manually through a custom backend system.',
       changelog: 'View Changelog',
       credit: 'Created by',
       close: 'Close',
@@ -167,7 +167,7 @@ export default function AboutModal({
             animate="visible"
             exit="exit"
             className={`
-              absolute inset-0 backdrop-blur-sm
+              absolute inset-0 backdrop-blur-[1px]
               ${isDarkMode ? 'bg-black/60' : 'bg-black/40'}
             `}
             onClick={onClose}
