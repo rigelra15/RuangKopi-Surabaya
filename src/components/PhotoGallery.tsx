@@ -51,9 +51,9 @@ export default function PhotoGallery({ photos, cafeName }: PhotoGalleryProps) {
             }}
             className={`
               relative rounded-xl overflow-hidden bg-gray-800 cursor-pointer
-              ${photos.length === 1 ? 'aspect-video' : ''}
-              ${photos.length === 2 ? 'aspect-video' : ''}
-              ${photos.length >= 3 && index === 0 ? 'col-span-2 aspect-video' : ''}
+              ${photos.length === 1 ? 'aspect-[32/9]' : ''}
+              ${photos.length === 2 ? 'aspect-[32/9]' : ''}
+              ${photos.length >= 3 && index === 0 ? 'col-span-2 aspect-[32/9]' : ''}
               ${photos.length >= 3 && index > 0 ? 'aspect-square' : ''}
             `}
           >
