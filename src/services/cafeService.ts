@@ -10,6 +10,7 @@ export interface Cafe {
   website?: string;
   openingHours?: string;
   cuisine?: string;
+  instagram?: string;
   // New useful fields for students
   brand?: string;
   hasWifi?: boolean;

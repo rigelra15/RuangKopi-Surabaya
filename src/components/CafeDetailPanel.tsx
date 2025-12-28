@@ -20,7 +20,11 @@ interface CafeDetailPanelProps {
 
 // Helper function to format cuisine string
 // Converts "coffee_shop" to "Coffee Shop"
-function formatCuisine(cuisine: string): string {
+function formatCuisine(cuisine: unknown): string {
+  if (typeof cuisine !== 'string') {
+    return cuisine ? String(cuisine) : '';
+  }
+  
   return cuisine
     .replace(/_/g, ' ')
     .replace(/;/g, ', ')
@@ -31,7 +35,16 @@ function formatCuisine(cuisine: string): string {
 
 // Helper function to format opening hours
 // Converts OSM format like "Mo-Th 07:00-23:00, Fr-Su 07:00-23:59" to readable format
-function formatOpeningHours(hours: string, language: 'id' | 'en'): string {
+function formatOpeningHours(hours: unknown, language: 'id' | 'en'): string {
+  if (typeof hours !== 'string') {
+    return hours ? String(hours) : '';
+  }
+
+  // unwanted boolean values as strings
+  if (hours.toLowerCase() === 'true' || hours.toLowerCase() === 'false') {
+    return '';
+  }
+
   const dayMappings: Record<string, { id: string; en: string }> = {
     'Mo': { id: 'Sen', en: 'Mon' },
     'Tu': { id: 'Sel', en: 'Tue' },
@@ -198,6 +211,7 @@ export default function CafeDetailPanel({
       smokingYes: 'Boleh Merokok',
       smokingNo: 'Dilarang Merokok',
       smokingOutside: 'Merokok di Luar',
+      smokingSeparated: 'Area Merokok Terpisah',
       airConditioning: 'AC',
       brand: 'Brand',
       // New
@@ -225,6 +239,7 @@ export default function CafeDetailPanel({
       smokingYes: 'Smoking Allowed',
       smokingNo: 'No Smoking',
       smokingOutside: 'Smoking Outside',
+      smokingSeparated: 'Separate Smoking Area',
       airConditioning: 'Air Conditioning',
       brand: 'Brand',
       // New
@@ -326,7 +341,8 @@ export default function CafeDetailPanel({
               fixed z-[1002]
               /* Mobile: bottom sheet */
               bottom-0 left-0 right-0
-              md:bottom-auto md:top-1/2 md:left-auto md:right-6 md:-translate-y-1/2
+              md:bottom-6 md:top-auto md:left-auto md:right-6
+              md:max-h-[calc(100vh-3rem)] md:overflow-y-auto scrollbar-hide
               md:w-96 md:rounded-2xl
               rounded-t-3xl
               ${isDarkMode
@@ -343,12 +359,12 @@ export default function CafeDetailPanel({
             </div>
 
             {/* Header with close and favorite buttons */}
-            <div className="flex items-start justify-between p-4 pb-2">
+            <div className="flex items-start justify-between p-4 pb-2 gap-3">
               <motion.div 
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ type: 'spring', delay: 0.1 }}
-                className="flex-1 pr-12"
+                className="flex-1 min-w-0"
               >
                 <div className="flex items-center gap-3">
                   {/* Logo */}
@@ -370,22 +386,24 @@ export default function CafeDetailPanel({
                     </motion.div>
                   )}
                   
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <h2 className="text-xl font-bold truncate">{cafe.name}</h2>
-                      {cafe.isCustom && (
-                        <span className={`
-                          inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0
-                          ${isDarkMode 
-                            ? 'bg-primary-500/20 text-primary-400 border border-primary-500/30' 
-                            : 'bg-primary-100 text-primary-700 border border-primary-200'
-                          }
-                        `}>
-                          <Icon icon="mdi:account-plus" className="w-3 h-3" />
-                          Custom
-                        </span>
-                      )}
-                    </div>
+                  <div className="flex-1 min-w-0 overflow-hidden">
+                    {cafe.name.length > 20 ? (
+                      <div className="overflow-hidden">
+                        <motion.h2 
+                          animate={{ x: ["0%", "-50%"] }} 
+                          transition={{ 
+                            repeat: Infinity, 
+                            ease: "linear", 
+                            duration: Math.max(cafe.name.length * 0.3, 5)
+                          }}
+                          className="text-xl font-bold whitespace-nowrap inline-block"
+                        >
+                          {cafe.name} &nbsp;&nbsp;&nbsp;•&nbsp;&nbsp;&nbsp; {cafe.name} &nbsp;&nbsp;&nbsp;•&nbsp;&nbsp;&nbsp;
+                        </motion.h2>
+                      </div>
+                    ) : (
+                      <h2 className="text-xl font-bold">{cafe.name}</h2>
+                    )}
                     {distance !== null && (
                       <p className="text-sm text-primary-500 font-medium mt-0.5 flex items-center gap-1">
                         <Icon icon="mdi:walk" className="w-4 h-4" />
@@ -396,7 +414,8 @@ export default function CafeDetailPanel({
                 </div>
               </motion.div>
               
-              <div className="flex items-center gap-2 absolute top-4 right-4">
+              {/* Buttons - now part of flex layout, not absolute */}
+              <div className="flex items-center gap-2 flex-shrink-0">
                 {/* Favorite button */}
                 <motion.button
                   initial={{ scale: 0 }}
@@ -455,7 +474,7 @@ export default function CafeDetailPanel({
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.15 }}
-                className="px-4 pb-2"
+                className="px-4 pt-2 pb-2"
               >
                 <PhotoGallery photos={cafe.photos} cafeName={cafe.name} />
               </motion.div>
@@ -485,23 +504,38 @@ export default function CafeDetailPanel({
               </motion.div>
 
               {/* Opening hours */}
-              {cafe.openingHours && (
-                <motion.div 
-                  custom={1}
-                  variants={itemVariants}
-                  initial="hidden"
-                  animate="visible"
-                  className={`flex items-start gap-2 text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}
-                >
-                  <Icon icon="mdi:clock-outline" className="w-5 h-5 flex-shrink-0 text-primary-500 mt-0.5" />
-                  <div>
-                    <span className="font-medium">{text.openingHours}</span>
-                    <div className="whitespace-pre-line mt-0.5">
-                      {formatOpeningHours(cafe.openingHours, language)}
+              {(() => {
+                const hours = cafe.openingHours;
+                // Only show if it's a valid string (not boolean, not empty)
+                const isValidHours = hours && typeof hours === 'string' && hours.trim() !== '' && hours !== 'true' && hours !== 'false';
+                const formattedHours = isValidHours ? formatOpeningHours(hours, language) : '';
+                
+                // Also check instagram field - sometimes opening hours end up there
+                const cafeData = cafe as unknown as Record<string, unknown>;
+                const instagramValue = cafeData.instagram;
+                const isInstagramActuallyHours = instagramValue && typeof instagramValue === 'string' && 
+                  (instagramValue.includes(':') || instagramValue.match(/\d{1,2}[:.,-]\d{2}/));
+                
+                const displayHours = formattedHours || (isInstagramActuallyHours ? formatOpeningHours(instagramValue, language) : '');
+                
+                return displayHours ? (
+                  <motion.div 
+                    custom={1}
+                    variants={itemVariants}
+                    initial="hidden"
+                    animate="visible"
+                    className={`flex items-start gap-2 text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}
+                  >
+                    <Icon icon="mdi:clock-outline" className="w-5 h-5 flex-shrink-0 text-primary-500 mt-0.5" />
+                    <div>
+                      <span className="font-medium">{text.openingHours}</span>
+                      <div className="whitespace-pre-line mt-0.5">
+                        {displayHours}
+                      </div>
                     </div>
-                  </div>
-                </motion.div>
-              )}
+                  </motion.div>
+                ) : null;
+              })()}
 
               {/* Phone */}
               {cafe.phone && (
@@ -518,6 +552,47 @@ export default function CafeDetailPanel({
                   </a>
                 </motion.div>
               )}
+
+              {/* Instagram */}
+              {(() => {
+                const cafeData = cafe as unknown as Record<string, unknown>;
+                let instagramValue = cafeData.instagram as string | undefined;
+                
+                // If instagram field is empty, check if brand looks like an Instagram handle
+                if (!instagramValue && cafe.brand) {
+                  const brand = cafe.brand;
+                  if (brand.startsWith('@') || (brand.match(/^[a-zA-Z0-9._]+$/) && !brand.includes(' '))) {
+                    instagramValue = brand;
+                  }
+                }
+                
+                // Only show if it's a valid instagram handle (starts with @ or is alphanumeric)
+                // Skip if it looks like opening hours (contains colons or time patterns)
+                const isValidInstagram = instagramValue && typeof instagramValue === 'string' &&
+                  !instagramValue.includes(':') && 
+                  !instagramValue.match(/\d{1,2}[:.,-]\d{2}/) &&
+                  (instagramValue.startsWith('@') || instagramValue.match(/^[a-zA-Z0-9._]+$/));
+                
+                return isValidInstagram ? (
+                  <motion.div 
+                    custom={2.5}
+                    variants={itemVariants}
+                    initial="hidden"
+                    animate="visible"
+                    className={`flex items-center gap-2 text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}
+                  >
+                    <Icon icon="mdi:instagram" className="w-5 h-5 flex-shrink-0 text-primary-500" />
+                    <a 
+                      href={`https://instagram.com/${instagramValue!.replace('@', '')}`}
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="hover:text-primary-500 transition-colors"
+                    >
+                      @{instagramValue!.replace('@', '')}
+                    </a>
+                  </motion.div>
+                ) : null;
+              })()}
 
               {/* Cuisine/type */}
               {cafe.cuisine && (
@@ -607,11 +682,13 @@ export default function CafeDetailPanel({
                       </div>
                     )}
 
-                    {/* Smoking Policy */}
-                    {cafe.smokingPolicy && (
+                    {/* Smoking Policy - only show if valid string value */}
+                    {cafe.smokingPolicy && 
+                     typeof cafe.smokingPolicy === 'string' &&
+                     ['yes', 'no', 'outside', 'separated'].includes(cafe.smokingPolicy.toLowerCase()) && (
                       <div className={`
                         inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium
-                        ${cafe.smokingPolicy === 'no' 
+                        ${cafe.smokingPolicy.toLowerCase() === 'no' 
                           ? (isDarkMode 
                               ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' 
                               : 'bg-rose-100 text-rose-700 border border-rose-200')
@@ -621,18 +698,18 @@ export default function CafeDetailPanel({
                         }
                       `}>
                         <Icon 
-                          icon={cafe.smokingPolicy === 'no' ? 'mdi:smoking-off' : 'mdi:smoking'} 
+                          icon={cafe.smokingPolicy.toLowerCase() === 'no' ? 'mdi:smoking-off' : 'mdi:smoking'} 
                           className="w-3.5 h-3.5" 
                         />
-                        {cafe.smokingPolicy === 'no' && text.smokingNo}
-                        {cafe.smokingPolicy === 'yes' && text.smokingYes}
-                        {cafe.smokingPolicy === 'outside' && text.smokingOutside}
-                        {!['yes', 'no', 'outside'].includes(cafe.smokingPolicy) && cafe.smokingPolicy}
+                        {cafe.smokingPolicy.toLowerCase() === 'no' && text.smokingNo}
+                        {cafe.smokingPolicy.toLowerCase() === 'yes' && text.smokingYes}
+                        {cafe.smokingPolicy.toLowerCase() === 'outside' && text.smokingOutside}
+                        {cafe.smokingPolicy.toLowerCase() === 'separated' && text.smokingSeparated}
                       </div>
                     )}
 
-                    {/* Brand */}
-                    {cafe.brand && (
+                    {/* Brand - filter out Instagram handles */}
+                    {cafe.brand && !cafe.brand.startsWith('@') && !cafe.brand.toLowerCase().includes('instagram') && (
                       <div className={`
                         inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium
                         ${isDarkMode 

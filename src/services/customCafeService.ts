@@ -200,6 +200,7 @@ export function customCafeToCafe(customCafe: CustomCafe): Cafe & { isCustom: tru
     address: customCafe.address,
     phone: customCafe.phone,
     website: customCafe.website,
+    instagram: customCafe.instagram,
     openingHours: customCafe.openingHours,
     hasWifi: customCafe.hasWifi,
     wifiFree: customCafe.wifiFree,
