@@ -1,0 +1,215 @@
+id,name,lat,lon,address,phone,website,instagram,openingHours,hasWifi,wifiFree,hasOutdoorSeating,hasTakeaway,hasAirConditioning,smokingPolicy,priceRange,description,logo,photos,submittedAt
+415826789,Cafe Glass,"-7,2661303","112,7646912","Jalan Dharmahusada, Mojo, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.293Z
+1340818669,Bon Cafe,"-7,2957078","112,6760649","Jalan Lingkar Dalam Barat, Babatan, Surabaya",,https://www.boncafellas.com/,,Mo-Su 09:00-22:30,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.295Z
+1849298684,Warung Bu Lilik,"-7,3601477","112,7290892","Jalan Jenderal S. Parman IV, Waru, Waru",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.295Z
+2633385707,Warkop Nobar,"-7,2531434","112,6447475",surabaya,,,,16:00-02:00,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.295Z
+3317227635,The Café,"-7,2310091","112,7344491","Jalan Kebalen Timur, Krembangan Utara, Surabaya",,https://houseofsampoerna.museum/e_historybeauty_cafe.htm,,Mo-Su 11:00-21:00,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.295Z
+3953125335,Starbucks,"-7,2621634","112,7504732","Jalan Gubeng Pojok, Ketabang, Surabaya",,,,,FALSE,FALSE,,TRUE,FALSE,TRUE,,Starbucks,,,2025-12-27T10:34:43.295Z
+4188606200,K1 Karaoke Lounge,"-7,242816","112,7413808","Jalan Stasiun Kota, Bongkaran, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.295Z
+4188733335,Quickly,"-7,374167","112,7936515","Jl. Ir. H. Juanda, No.1, Terminal 1 Juanda International Airport, Segoro Tambak, Sidoarjo, Surabaya, East Java",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.295Z
+4188777124,High Point Cafe Speciality,"-7,337004","112,7388901","Jalan Siwalankerto, Nomor 161-165, East Java, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.295Z
+4188778818,Historica Coffee & Pastry,"-7,2694972","112,7494463","Jalan Sumatera, Nomor 40, Gubeng",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.295Z
+4188865096,Kedai kopi SINGGALANG,"-7,2492813","112,7307395","Jl. Semarang, 1, Kota SBY, Jawa Timur, Indonesia",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.295Z
+4189063901,Autonet,"-7,2819951","112,7425595","Jalan Mojopahit, Keputran, Tegalsari, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.295Z
+4189279554,Konig,"-7,2818933","112,7762419","Jalan Kertajaya Indah Tengah V, 411, Manyar Sabrangan, Surabaya, Jawa Timur, Indonesia",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.295Z
+4190997489,Kudos Cafe,"-7,294822","112,6751715","Jalan Boulevard Indah, Darmo, Wonokromo, Surabaya, Jawa Timur, Indonesia",+623199016791,https://www.instagram.com/kudos_cafe/,,Mo-Th 08:00-22:00; Fr-Su 08:00-23:00,FALSE,FALSE,,FALSE,FALSE,TRUE,,,,,2025-12-27T10:34:43.295Z
+4191042368,J.Co,"-7,2857863","112,6808174","Jalan Bukit Darmo Boulevard, Dukuh Pakis, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.295Z
+4191048384,Sapi Milk,"-7,2948767","112,7625001","Jalan Raya Manyar, No.53D, Menur Pumpungan, Sukolilo, Surabaya, East Java",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.295Z
+4191074244,Layali Shisha Cafe and Lounge,"-7,2692876","112,7506084","Jalan Sumatra, 31, RT.002/RW.05, Gubeng, Kota Surabaya, Jawa Timur, Indonesia",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.295Z
+4191092612,Blackbarn Coffee,"-7,2848049","112,736194","Jl. Untung Suropati, No.79, Tegalsari, Dr. Sutomo, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.295Z
+4191121303,Le Cafe Gourmand,"-7,2661781","112,7399656","Jalan Pregolan, 2, Tegalsari, Kota SBY, Jawa Timur",5355511,,,Mo-Su 08:00-22:00,FALSE,FALSE,,FALSE,FALSE,TRUE,,,,,2025-12-27T10:34:43.295Z
+4191144649,Libby cafe,"-7,2696212","112,6967882","Jalan Sukomanunggal Jaya Blok YL, 2, Tandes, Sukomanunggal, Jawa Timur",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.295Z
+4191179831,Cafe Glass,"-7,3037377","112,7618885","Jl. Raya Nginden No.72-A, Baratajaya, Gubeng, Surabaya, East Java",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.295Z
+4191188521,Calibre,"-7,2611565","112,7488027","Jalan Walikota Mustajab, 67 - 69, Genteng, Ketabang, Surabaya",+62 31 5454801,,,Su-Th 10:00-22:00; Fr-Sa 10:00-23:30,TRUE,TRUE,outside,TRUE,FALSE,TRUE,,,,,2025-12-27T10:34:43.295Z
+4191236894,Caturra Espresso,"-7,2583456","112,7294178","Jalan Anjasmoro, Sawahan, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.295Z
+4191388843,Coffeezone,"-7,2837039","112,7414089","Jl. Tumapael 33, Keputran, Tegalsari, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.295Z
+4191391086,Coffee Toffee,"-7,2868818","112,7757162","Jl. Klampis Jaya, Klampis Ngasem, Sukolilo, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.295Z
+4191427580,Communal,"-7,2821635","112,7762654","Jalan Kertajaya Indah Tengah, No. 24, Manyar Sabrangan, Surabaya, Jawa Timur, Indonesia",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.295Z
+4192739036,Monopole Coffee Lab,"-7,2828406","112,694808","Jl. Raya Darmo Permai I, 38, Pradahkali Kendal, Dukuh Pakis, Kota SBY, Jawa Timur, Indonesia",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.295Z
+4192761149,Starbucks,"-7,32027","112,7325051","Jalan Ahmad Yani, No. 88, Ketintang, Gayungan, Surabaya",,,,,FALSE,FALSE,,TRUE,FALSE,FALSE,,Starbucks,,,2025-12-27T10:34:43.295Z
+4192765244,Starbucks,"-7,2744901","112,7820139","Jl. Dr. Ir. H. Soekarno, No.35-39, Mulyorejo, Surabaya, East Java",,,,,FALSE,FALSE,,TRUE,FALSE,FALSE,,Starbucks,,,2025-12-27T10:34:43.295Z
+4192766545,Starbucks,"-7,2926634","112,7188218","JL. Mayor Jenderal Sungkono, No. 87, Pakis, Surabaya, East Java",,,,,FALSE,FALSE,,TRUE,FALSE,FALSE,,Starbucks,,,2025-12-27T10:34:43.295Z
+4192769085,Stilrod Cycle Shop,"-7,293055","112,7394879","Jl. Juwono, No.2, Darmo, Wonokromo, Surabaya, East Java",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+4192787118,STMJ Bu Nunuk Pojok Ngagel,"-7,2944924","112,7461441","Jl. Ngagel Redjo, Ngagelrejo, Wonokromo, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+4192852886,Dunkin',"-7,2655282","112,7526625","Jl. Stasiun Gubeng, Pacar Keling, Tambaksari, Surabaya, East Java",,,,,FALSE,FALSE,,TRUE,FALSE,FALSE,,Dunkin',,,2025-12-27T10:34:43.296Z
+4192912669,Surabaya CAFÈ,"-7,2654319","112,7527206","Jl. Gubeng Masjid, No.2, Pacar Keling, Tambaksari, Surabaya, East Java",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+4193058429,Excelso,"-7,2763121","112,7818725","Galaxy Mall - Management - Office Lantai I No. 112, JL. Dharma Husada Indah Timur, No. 37, Mulyorejo, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+4193096146,Feliz Guest House & Cafe,"-7,3219722","112,7463631","Jl. Raya Kendangsari, No.80, emur Wonosari, Rungkut, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+4193187205,Teras Rumah Cafe,"-7,2737522","112,7954887","Jl. Wisma Permai 1, Mulyorejo, Surabaya, East Java",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+4193209039,The Coffee Bean & Tea Leaf,"-7,2930433","112,719656","JL. Mayjend Sungkono, Pakis, Surabaya, East Java",,,,,FALSE,FALSE,,TRUE,FALSE,FALSE,,The Coffee Bean & Tea Leaf,,,2025-12-27T10:34:43.296Z
+4193358660,Too Too Moo Patisserie,"-7,2840504","112,7360311","Jl. Untung Suropati, No.63, Dr. Sutomo, Tegalsari, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+4212997992,Kopi Ganes,"-7,2876459","112,8040771","Jalan Keputih Tegal Timur II, Keputih, Surabaya",,,,,FALSE,FALSE,yes,FALSE,FALSE,TRUE,,,,,2025-12-27T10:34:43.296Z
+4260123796,"Zangrandi, Ice Cream","-7,2635031","112,7460796","Jalan Yos Sudarso, 15, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+4260125476,The Avenue Lounge Bar,"-7,2914353","112,7155623","Jalan Mayjend. Sungkono, 101 - 103, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+4260137173,Kedai Kopi (Keiko),"-7,2858843","112,7759749","Jl. Klampis Jaya, 25 C, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+4260141068,De mandailing Cafe n Eatery Jemur Sari,"-7,322603","112,7423292","Jalan Jemur Sari, 71, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+4260143149,Otoclassic Cafe,"-7,2940318","112,7572188","Jalan Krukah Timur, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+4260144465,GR Café (Gue Rasa ini Café),"-7,2923125","112,7495072","Jalan Bung Tomo, 30, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+4260149093,One Dollar Cafe,"-7,2907982","112,7465567","Jalan Bung Tomo, 6, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+4267713041,Kafe Panorama,"-7,2824084","112,7622228","Jalan Menur, 93, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+4267809700,Shae Cafe and Eatery,"-7,2773927","112,746638","Jalan Bawean, 5, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+4270975190,Noach Cafe & Bistro,"-7,2664268","112,7398709","Jalan Pregolan, 4",,,,Mo-Th 11:00-22:00; Fr-Sa 11:00-22:00,FALSE,FALSE,,FALSE,FALSE,TRUE,,,,,2025-12-27T10:34:43.296Z
+4270993990,Boncafe Steak & Ice Cream,"-7,2660414","112,7398197","Jalan Pregolan, 2",5343018,,,Mo-Su 09:00-22:00,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+4296327398,KPK Latar Ombo,"-7,3086561","112,7206005","Jalan Raya Karah, Karah, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+4342496192,Warkop Damai,"-7,3122818","112,7973987",Wonorejo,,,,,FALSE,FALSE,,FALSE,FALSE,TRUE,,,,,2025-12-27T10:34:43.296Z
+4353734393,After you,"-7,2914818","112,6478516","Jalan Buana Golf Utama, Jeruk, Surabaya",+6281331986660,,,Mo-Su 11:00-23:55,FALSE,FALSE,,FALSE,FALSE,TRUE,,,,,2025-12-27T10:34:43.296Z
+4361191857,Excelso,"-7,2931421","112,6541706","Niaga Gapura Road, Lidah Kulon, Surabaya",,https://excelso-coffee.com/,,Mo-Su 10:00-22:00,FALSE,TRUE,outside,FALSE,FALSE,TRUE,,,,,2025-12-27T10:34:43.296Z
+4384067060,Pisa,"-7,2816688","112,6838289","Jalan Simpang Darmo Permai Selatan IV, Pradahkali Kendal, Surabaya",+62317320220,http://www.kafepisa.com,,Mo-Su 11:00-21:00,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+4405219506,Starbucks,"-7,2990766","112,6760103","Jalan Lingkar Dalam Barat, 1, Babatan, Surabaya",+623199001346,https://www.starbucks.co.id/store/116616/ID/Graha-Family-Hospital/Jl-Boulevard-Famili-Selatan-Kav-1-Surabaya-JI,,Mo-Su 07:30-23:00,TRUE,TRUE,outside,TRUE,FALSE,TRUE,,Starbucks,,,2025-12-27T10:34:43.296Z
+4478356333,MIXTIX,"-7,2984682","112,649344","Jalan Telaga Utama, Jeruk, Surabaya",+6282178787890,,,"We-Su 15:00-00:00, Mo 15:00-00:00",FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+4497818275,Starbucks,"-7,374961","112,7936295","Jalan Tol Waru–Juanda, Segoro Tambak, Sedati",,,,,FALSE,FALSE,,TRUE,FALSE,FALSE,,Starbucks,,,2025-12-27T10:34:43.296Z
+4507463564,Spago,"-7,290712","112,6546441","Niaga Gapura Road, Lidah Kulon, Surabaya",,,,Mo-Su 10:30-22:30,FALSE,FALSE,,FALSE,FALSE,TRUE,,,,,2025-12-27T10:34:43.296Z
+4516864624,Excelso,"-7,2693945","112,743946","Jalan Panglima Besar Sudirman, Embong Kaliasin, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+4548836566,Surabaya pagi,"-7,2378814","112,7361972","Gang Jalak, Krembangan Selatan, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+4599296300,GatherInc.,"-7,2781639","112,6454351","Taman puspa raya, 11",+623199019881,http://gatherinc-bistro.com/,,"Mo-Fr 10:00-22:00; Sa, Su 10:00-23:00",TRUE,TRUE,outside,FALSE,FALSE,TRUE,,,,,2025-12-27T10:34:43.296Z
+4601097829,Philip's coffee,"-7,2930653","112,6765087","Jalan Mayor Jenderal Jonosewojo, Pradahkali Kendal, Surabaya",+62 31 7321507,,,Tu-Su 09:00-21:00,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+4601097830,Ohana,"-7,2927503","112,6765905","Jalan Mayor Jenderal Jonosewojo, Pradahkali Kendal, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+4601097898,Elizabeth James,"-7,293926","112,6768816",Surabaya,+62317386789,,,Mo-Su 10:30-22:00,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+4631787161,Warkop Kong Hari,"-7,361719","112,7301035","Jalan Jendral Ahmad Yani, Sidoarjo",,,,24/7,FALSE,TRUE,yes,FALSE,FALSE,TRUE,,,,,2025-12-27T10:34:43.296Z
+4721430070,warung pojok,"-7,1580719","112,6550413",Jalan Maulana Malik Ibrahim,,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+4721430071,warung spensa,"-7,161851","112,6532987",Jalan Jaksa Agung Suprapto,,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+4721430072,Warung Ultra,"-7,1617431","112,6526997","Jalan Jaksa Agung Suprapto, Bedilan",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+4721430073,Warung APJ,"-7,1608529","112,6472215",Jalan Jaksa Agung Suprapto,,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+4721430074,Warung Kopi PDI,"-7,1619993","112,6546563",Jalan Jaksa Agung Suprapto,,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+4723341396,Starbucks,"-7,2899163","112,6755586","Jalan Mayor Jenderal Jonosewojo, Babatan, Surabaya",,,,Mo-Su 10:00-22:00,FALSE,FALSE,,TRUE,FALSE,FALSE,,Starbucks,,,2025-12-27T10:34:43.296Z
+4746176616,Supresso,"-7,2933376","112,6752333","Jalan Puncak Lontar I, Babatan, Surabaya",,https://www.supresso.com/,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+4746184767,Kabinet,"-7,2961875","112,6750664","Jalan Bukit Indah Lontar 1, Lidah Wetan, Surabaya",,https://kabinetcoffee.com/,,Mo-Su 08:00-22:00,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+4746185020,Le cafe gourmand,"-7,2959088","112,6760144","Jalan Lingkar Dalam Barat, Babatan, Surabaya",+62 31 7322552,,,Mo-Su 08:00-23:00,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+4757366122,Starbucks,"-7,2964397","112,6542474","Niaga Gapura Road, Lidah Kulon, Surabaya",,https://www.starbucks.co.id/,,Mo-Su 07:00-22:00,TRUE,TRUE,outside,TRUE,FALSE,TRUE,,Starbucks,,,2025-12-27T10:34:43.296Z
+4824490649,Starbucks,"-7,2859307","112,6805656","Jalan Bukit Darmo Boulevard, Surabaya",+623151163546,https://www.starbucks.co.id/store/1018293/ID/Lenmarck-Surabaya/Jalan-Bukit-Darmo-Boulevard-Office-park-2-No-1,,Mo-Su 08:00-22:00,TRUE,FALSE,no,TRUE,FALSE,TRUE,,Starbucks,,,2025-12-27T10:34:43.296Z
+4830378536,Calipto,"-7,2790226","112,645619","Jalan Telaga Puspa Raya, Sambikerep, Surabaya",+62 812 3386 6919,,,Tu-Su 09:00-21:00,TRUE,FALSE,outside,FALSE,FALSE,TRUE,,,,,2025-12-27T10:34:43.296Z
+4873369734,Confit,"-7,299552","112,6766185","Jalan Boulevard Famili Selatan, Babatan, Surabaya",+6289690780364,,,Mo-Su 06:45-22:00,FALSE,FALSE,no,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+4916263859,Starbucks,"-7,2875575","112,6751859","Jalan Raya Lontar PLN, Babatan, Surabaya",,,,Mo-Su 10:00-22:00,TRUE,FALSE,no,TRUE,FALSE,TRUE,,Starbucks,,,2025-12-27T10:34:43.296Z
+5276657698,Tea Presso,"-7,2992134","112,6760609","Jalan Boulevard Famili Selatan, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+5295169645,Sugabites,"-7,29408","112,6763329","Jalan Kondominium Graha Famili, Pradahkali Kendal, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+5295169646,TGC,"-7,2939676","112,6762902","Jalan Kondominium Graha Famili, Pradahkali Kendal, Surabaya",,,,Mo-Su 06:00-23:45,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+5354541741,Bird house,"-7,2935947","112,6762882","Jalan Mayor Jenderal Jonosewojo, Pradahkali Kendal, Surabaya",,https://www.instagram.com/birdhousebistro/,,Mo-Su 12:00-22:00,FALSE,TRUE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+5381991209,Palms,"-7,2948712","112,6670643","Jalan Imperial Golf Regency, Lidah Wetan, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+5497771740,Churrz,"-7,2939376","112,6761595","Jalan Kondominium Graha Famili, Pradahkali Kendal, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+5873191069,Starbucks,"-7,3832311","112,7753502","Jalan Insinyur Haji Juanda, Betro, Sedati",,,,,FALSE,FALSE,,TRUE,FALSE,FALSE,,Starbucks,,,2025-12-27T10:34:43.296Z
+5873191070,Starbucks,"-7,3828853","112,775141","Jalan Insinyur Haji Juanda, Betro, Sedati",,,,,FALSE,FALSE,,TRUE,FALSE,FALSE,,Starbucks,,,2025-12-27T10:34:43.296Z
+5873197056,Starbucks,"-7,2797036","112,7673519","Jalan Manyar Kertoarjo VI, Mojo, Surabaya",,,,07:00-23:00,TRUE,TRUE,outside,TRUE,FALSE,TRUE,,Starbucks,,,2025-12-27T10:34:43.296Z
+5873197057,Starbucks,"-7,2617762","112,7394783","Jalan Mergoyoso, Kedungdoro, Surabaya",,,,,FALSE,FALSE,,TRUE,FALSE,FALSE,,Starbucks,,,2025-12-27T10:34:43.296Z
+5873197058,Starbucks,"-7,2612547","112,7383465","Jalan Embong Malang, Kedungdoro, Surabaya",,,,,FALSE,FALSE,,TRUE,FALSE,FALSE,,Starbucks,,,2025-12-27T10:34:43.296Z
+5873197059,Starbucks,"-7,2631864","112,7392584","Jalan Kaliasin Pompa, Kedungdoro, Surabaya",,,,,FALSE,FALSE,,TRUE,FALSE,FALSE,,Starbucks,,,2025-12-27T10:34:43.296Z
+5873197060,Starbucks,"-7,2622711","112,7379978","Jalan Mergoyoso Gang II, Kedungdoro, Surabaya",,,,,FALSE,FALSE,,TRUE,FALSE,FALSE,,Starbucks,,,2025-12-27T10:34:43.296Z
+5873197061,Starbucks,"-7,2945388","112,7301228","Jalan Batanghari, Sawunggaling, Surabaya",,,,,FALSE,FALSE,,TRUE,FALSE,FALSE,,Starbucks,,,2025-12-27T10:34:43.296Z
+5873197062,Starbucks,"-7,2768993","112,805863","Jalan Laguna Kejawan Putih Tambak, Kejawen Putih Tambak, Surabaya",,,,,FALSE,FALSE,,TRUE,FALSE,FALSE,,Starbucks,,,2025-12-27T10:34:43.296Z
+5897591816,Titik Kumpul,"-7,2779716","112,7647984","Jalan Manyar Kertoarjo XIII, Manyar Sabrangan, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+5897591856,Rollaas,"-7,280853","112,7734619","Jalan Raya Kertajaya Indah, Manyar Sabrangan, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+6123924347,Maxx Coffee,"-7,2619186","112,7499001","Jalan Gubeng Pojok, Ketabang, Surabaya",,,,,FALSE,FALSE,,TRUE,FALSE,TRUE,,Maxx Coffee,,,2025-12-27T10:34:43.296Z
+6123924348,Excelso,"-7,2618108","112,7497901","Jalan Gubeng Pojok, Ketabang, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,TRUE,,,,,2025-12-27T10:34:43.296Z
+6123924349,Anomali Coffee,"-7,2621593","112,750348","Jalan Gubeng Pojok, Ketabang, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,TRUE,,,,,2025-12-27T10:34:43.296Z
+6123924350,Oh Gelato & Cafe,"-7,2604671","112,7510521","Jalan Kusuma Bangsa, Ketabang, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+6154038472,Renekopi,"-7,3087693","112,7215186","Jalan Ketintang Barat, Karah, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+6214815967,Starbucks,"-7,2630241","112,7406183","Jalan Jenderal Basuki Rachmat, Kedungdoro, Surabaya",,,,,FALSE,FALSE,,TRUE,FALSE,FALSE,,Starbucks,,,2025-12-27T10:34:43.296Z
+6214815968,Starbucks,"-7,3388087","112,7375364","Jalan Siwalankerto, SiwalanKerto, Surabaya",,,,,FALSE,FALSE,,TRUE,FALSE,FALSE,,Starbucks,,,2025-12-27T10:34:43.296Z
+6214815969,Starbucks,"-7,2652191","112,7485067","Jalan Pemuda, Embong Kaliasin, Surabaya",,,,,FALSE,FALSE,,TRUE,FALSE,FALSE,,Starbucks,,,2025-12-27T10:34:43.296Z
+6214815970,Starbucks,"-7,2556672","112,7338484","Jalan Kranggan, Sawahan, Surabaya",,,,,FALSE,FALSE,,TRUE,FALSE,FALSE,,Starbucks,,,2025-12-27T10:34:43.296Z
+6214815971,Starbucks,"-7,2510215","112,6617667","Jalan Marrgomulyo Indah, Banjar Sugihan, Surabaya",,,,,FALSE,FALSE,,TRUE,FALSE,FALSE,,Starbucks,,,2025-12-27T10:34:43.296Z
+6296236163,Starbucks,"-7,3144389","112,7810472","Jalan Baruk Utara IX, Kedung Baruk, Surabaya",,,,,FALSE,FALSE,,TRUE,FALSE,FALSE,,Starbucks,,,2025-12-27T10:34:43.296Z
+6358934717,Bakso Sumberejo,"-7,2277435","112,6071113","Jalan Sumberrejo Makmur IX, Sumberrejo, Surabaya",,,,,FALSE,TRUE,outside,TRUE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+6363976422,Warung Polisi (Warpol),"-7,2894573","112,7756865","Jalan Arief Rahman Hakim, Klampis Ngasem, Sukolilo, Surabaya",,,,,FALSE,TRUE,yes,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+6397255490,coffy toffy manyar,"-7,2892326","112,763134","Jalan Menur Pumpungan, No.33, Menur Pumpungan, Sukolilo, Surabaya, East Java",,,,Mo-Su 09:00-21:00,FALSE,TRUE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+6409346562,Starbucks,"-7,2760014","112,7808205","Galaxy Mall Skybridge, Mulyorejo, Surabaya",,,,,FALSE,FALSE,,TRUE,FALSE,FALSE,,Starbucks,,,2025-12-27T10:34:43.296Z
+6495308533,Janji Jiwa,"-7,2706004","112,7562516","Jalan Dharmawangsa VII, Airlangga, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+6621178653,The Coffee Bean & Tea Leaf,"-7,2625788","112,7381244","Unit 22-23, Surabaya",,,,,FALSE,FALSE,,TRUE,FALSE,FALSE,,The Coffee Bean & Tea Leaf,,,2025-12-27T10:34:43.296Z
+6681993566,Thirty3 Brew,"-7,2861002","112,7327551",Jalan Opak,,,,Mo-Su 10:00-23:00,TRUE,TRUE,,FALSE,TRUE,TRUE,,,,,2025-12-27T10:34:43.296Z
+6681993571,Seventies Coffee,"-7,2856692","112,7329429","Jalan Opak, Darmo, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+6681993573,Locaāhands,"-7,2871804","112,7332299","Jalan Opak, Darmo, Surabaya",,,,Mo-Su 08:00-22:00,FALSE,TRUE,,FALSE,TRUE,FALSE,,,,,2025-12-27T10:34:43.296Z
+6806679940,Diskuupi,"-7,2725287","112,7562049","Jalan Dharmawangsa, Airlangga, Surabaya",,,,,FALSE,TRUE,,FALSE,FALSE,TRUE,,,,,2025-12-27T10:34:43.296Z
+6806679941,Hi Coffee,"-7,2726524","112,7562049","Jalan Dharmawangsa, Airlangga, Surabaya",,,,,FALSE,TRUE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+6806679945,Lain Hati,"-7,2737805","112,7561539","Jalan Dharmawangsa, Airlangga, Surabaya",,,,,FALSE,TRUE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+6806679946,Pukul Satu,"-7,2766819","112,7557891","Jalan Dharmawangsa, Airlangga, Surabaya",,,,,FALSE,TRUE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+6806679947,Foresthree,"-7,277806","112,754558","Jalan Gubeng Kertajaya VII, Airlangga, Surabaya",,,,,FALSE,TRUE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+6806679950,Kopi Yor,"-7,2717451","112,7608087","Jalan Karang Menjangan, Airlangga, Surabaya",,,,,FALSE,TRUE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+6806679951,Awal Cerita,"-7,2710483","112,7608578","Jalan Karang Menjangan, Mojo, Surabaya",,,,,FALSE,TRUE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+6811538254,Diskuupi 101,"-7,299809","112,7656827","Jalan Nginden Semolo, 38, Surabaya",,,,,FALSE,TRUE,,FALSE,FALSE,TRUE,,,,,2025-12-27T10:34:43.296Z
+6862762515,Katalokopi,"-7,2743511","112,7561009","Jalan Dharmawangsa, Airlangga, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+6960986586,Warkop Stadion,"-7,3291909","112,7228236","Jalan Gayung Kebonsari Tengah, Gayungan, Surabaya",,,,24/7,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+7111723185,Mokha Eatery,"-7,2262097","112,7410538","Jalan KH Mas Mansyur, 250",,,,Mo-Su 09:30-21:30,FALSE,FALSE,,FALSE,FALSE,TRUE,,,,,2025-12-27T10:34:43.296Z
+7155502185,Depot Ko San - Perhimpunan Xiang Qi Pasar Atom,"-7,2418702","112,7448489",Jalan Bunguran,,,,Mo-Su 10:00-16:00,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+7500274810,Kopi Lain Hati,"-7,3131667","112,7870247","Jalan Raya Kendalsari, Penjaringan Sari, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+7991989466,Angkringan & Cafe Basecamp 17,"-7,299597","112,7680066","Jalan Nginden Semolo, 45, Surabaya",,,,Mo-Sa 10:00-21:00,TRUE,FALSE,,FALSE,FALSE,TRUE,,,,,2025-12-27T10:34:43.296Z
+8186667117,"Warkop Ambyar ""mas Firman","-7,3393614","112,7282991",Jalan Menanggal VI,,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+9152502969,GIRAS BERSATU REVO 99,"-7,3396385","112,7851322","Gunung Anyar, Surabaya",,,,Mo-Su 09:00-21:00,TRUE,TRUE,,FALSE,FALSE,TRUE,,,,,2025-12-27T10:34:43.296Z
+9599404615,Mexicola,"-7,2801788","112,8045749","Jalan Kejawen Mutiara Timur, Kejawen Putih Tambak, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+10036141152,Excelso - SDA Hotel Neo,"-7,3576146","112,7288917","Jalan Letnan Jenderal S. Parman, Waru, Waru",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+10129447477,1UP Kitchen,"-7,2863144","112,6556973","Jalan Niagara Gapura, Surabaya",+6281386878801,,,Mo-Su 10:00-22:00,TRUE,TRUE,,FALSE,FALSE,TRUE,,,,,2025-12-27T10:34:43.296Z
+10139441848,Tanamera Coffee & Roastery Trunojoyo,"-7,2846363","112,7350704","Jalan Trunojoyo, Dr. Sutomo, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+10142198066,Toko Kopi Padma,"-7,2587211","112,7383317","Jalan Tunjungan, Genteng, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+10554645106,Toby's Estate La Viz,"-7,289331","112,6738712","PM Home Pro Ground Floor, Surabaya",+6281259546675,,,,TRUE,TRUE,,TRUE,FALSE,TRUE,,,,,2025-12-27T10:34:43.296Z
+10774732097,Loko,"-7,2655817","112,7524654","Jalan Stasiun Gubeng, Pacar Keling, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+11033768343,Starbucks,"-7,2925713","112,7198711",Surabaya,,,,,FALSE,FALSE,no,TRUE,TRUE,FALSE,,,,,2025-12-27T10:34:43.296Z
+11348321169,Good Press and Co,"-7,2668495","112,7490196","Jalan Embong Kenongo, Embong Kaliasin, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+11609752540,Salt & Sugar Cafe and Bistro,"-7,3226777","112,7421007","Jalan Raya Jemursari, 69, Surabaya",+62 852 3121 6943,https://salt-and-sugar-cafe-and-bistro.business.site/,,Mo-Su 10:00-21:15,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+11733317569,Warkop Buk Niroh,"-7,2399643","112,7161378",Jalan Rusun Dupak Bangunrejo II,,,,Mo-Su 05:00-13:00,FALSE,FALSE,,FALSE,FALSE,TRUE,,,,,2025-12-27T10:34:43.296Z
+11733317572,Warkop,"-7,2409355","112,7337958","Jalan Krembangan Barat, 3",,,,Mo-Sa 06:00-15:00,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+11733317673,Warkop Sur,"-7,2281301","112,7362223","Jalan Muteran III, 23",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+11733317680,Warkop Ambon Mama Ilona,"-7,2375225","112,7328035","Ketumbar, 4",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+11733317775,Warkop Magupa,"-7,2307317","112,7317029",Jalan Indrapura Pasar,,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+11733317973,Warkop Pojok Krembangan,"-7,2349903","112,7331978",Jalan Krembangan Besar,,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+11733317984,Warkop Kebalen Wetan 3,"-7,2276416","112,7350109",Jalan Kebalen Wetan III,,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+11780266827,kafe,"-7,2490839","112,7535738","Jalan Kapasari Pendukuhan, Tambakrejo, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+11984937195,Ultra Coffee,"-7,2916881","112,729668","Jalan Cipunegara, Darmo, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+12012456804,Warkop DankDut,"-7,2690545","112,7443616","Jalan Embong Kemiri, Embong Kaliasin, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+12046877060,Taman Jajan Puri Surya Jaya,"-7,3958101","112,7321571","Jalan Raya Athena Selatan I, Gedangan, Sidoarjo",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+12211251378,Warkop Budal Mulih,"-7,3016779","112,7622739","Jalan Raya Nginden, 35-37, Nginden Jangkungan, Surabaya",,https://www.instagram.com/warkop.budalmulih,,24/7,TRUE,TRUE,,FALSE,FALSE,TRUE,,,,,2025-12-27T10:34:43.296Z
+12215189327,Bubu Oriental,"-7,2575058","112,7376583","Jalan Tunjungan, Genteng, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+12215189328,Phermitage,"-7,2576123","112,737729","Jalan Tunjungan, Genteng, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+12215189330,Ludic,"-7,2577201","112,7377921","Jalan Tunjungan, Genteng, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+12215189331,Thirty Three,"-7,2579232","112,737865","Jalan Tunjungan, Genteng, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+12215189341,Hoho Coffee,"-7,2595504","112,7387904","Jalan Tunjungan, Genteng, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+12215189342,Zerøgram,"-7,2596488","112,7388566","Jalan Tunjungan, Genteng, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+12215189345,Piring Seng,"-7,2601788","112,7390788","Jalan Tunjungan, Genteng, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+12215189353,Paper Cup,"-7,2607207","112,7395192","Jalan Tunjungan, Genteng, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+12215189357,TOMORO Coffee,"-7,2579405","112,7382243","Jalan Tunjungan, Genteng, Surabaya",,,,,FALSE,FALSE,,TRUE,FALSE,FALSE,,TOMORO Coffee,,,2025-12-27T10:34:43.296Z
+12273402245,Omahe Mbah Giyo,"-7,276601","112,7509215","Jalan Gubeng Kertajaya I Raya, Gubeng, Surabaya",,https://www.instagram.com/omahe_mbah_giyo_,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+12284575449,Warkop Bening,"-7,275014","112,7316495","Jalan Pandegiling, Dr. Sutomo, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+12289370654,Bangi Kopi,"-7,3756601","112,7979404","Jalan Tol Waru–Juanda, Segoro Tambak, Sedati",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+12656819115,Mana Cafe,"-7,1533819","112,618871","Siti Fatimah Binti Maimun Raya, 28, Kebomas, Gresik",+628113019006,https://www.instagram.com/mana2685gsk,,,TRUE,TRUE,outside,TRUE,TRUE,TRUE,,,,,2025-12-27T10:34:43.296Z
+12721862892,BM Coffee,"-7,3264049","112,7808962",Jalan Doktor Insinyur Haji Soekarno,,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+12721862893,Jokopi,"-7,3260034","112,7808423",Jalan Doktor Insinyur Haji Soekarno,,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+12726094808,Point Coffee,"-7,3113686","112,6838177","Jalan Babatan Pilang Raya, Babatan, Surabaya",,,,,FALSE,FALSE,,TRUE,FALSE,FALSE,,Point Coffee,,,2025-12-27T10:34:43.296Z
+12726094819,Excelso,"-7,3110457","112,6822989","Jalan Raya Menganti Babatan, Babatan, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+12726094820,Ada Apa Dengan Kopi?,"-7,310916","112,6813991","Jalan Raya Menganti Babatan, Babatan, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+12726094846,Starbucks,"-7,3104757","112,6793363","Jalan Raya Menganti Babatan, Babatan, Surabaya",,,,,FALSE,FALSE,,TRUE,FALSE,FALSE,,Starbucks,,,2025-12-27T10:34:43.296Z
+12726094849,Kopi Kenangan,"-7,3110812","112,6789735","Jalan Griya Babatan Mukti I, Babatan, Surabaya",,,,,FALSE,FALSE,,TRUE,FALSE,FALSE,,Kopi Kenangan,,,2025-12-27T10:34:43.296Z
+12902684499,Cafe Goede,"-7,2770046","112,8054411","Jalan Laguna Kejawan Putih Tambak, Kejawen Putih Tambak, Surabaya",81133347816,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+12980202603,Warkop Jagone Kopi,"-7,3529205","112,7206293","Jl. Letjend Sutoyo No.58, Bungur, Medaeng, Kec. Waru, Kabupaten Sidoarjo, Jawa Timur",,,,24/7,FALSE,FALSE,,FALSE,FALSE,TRUE,,,,,2025-12-27T10:34:43.296Z
+12981844802,Kopikimi Dairy,"-7,3673569","112,714315","Jl. Ratu Ayu No.53, Sritanjung, Wage, Kec. Taman, Kabupaten Sidoarjo, Jawa Timur",,,,Mo-Su 10:00-02:00,FALSE,FALSE,,FALSE,FALSE,TRUE,,,,,2025-12-27T10:34:43.296Z
+12989587103,"""STK"" Sedulur Tunggal Kopi","-7,2859208","112,6981745","Jl. Mayjen HR. Muhammad No.246, Putat Gede, Kec. Sukomanunggal, Surabaya, Jawa Timur",,,,24/7,FALSE,FALSE,,FALSE,FALSE,TRUE,,,,,2025-12-27T10:34:43.296Z
+12997276301,Warkop Mampir,"-7,3693332","112,7136849","Jl. Ratu Ayu No.3, Sritanjung, Wage, Kec. Taman, Kabupaten Sidoarjo, Jawa Timur",,,,24/7,FALSE,FALSE,,FALSE,FALSE,TRUE,,,,,2025-12-27T10:34:43.296Z
+13034168703,Warkop 88,"-7,3688728","112,7134945","Jl. Ratu Ayu No.10-18, Sritanjung, Wage, Kec. Taman, Kabupaten Sidoarjo, Jawa Timur",,,,24/7,FALSE,FALSE,,FALSE,FALSE,TRUE,,,,,2025-12-27T10:34:43.296Z
+13041317101,Warkop Projo Anom,"-7,3125742","112,7060841","Jl. Raya Menganti No.38, Jajar Tunggal, Kec. Wiyung, Surabaya, Jawa Timur",,,,24/7,FALSE,FALSE,,FALSE,FALSE,TRUE,,,,,2025-12-27T10:34:43.296Z
+13061465601,"""STK"" Sedulur Tunggal Kopi","-7,3109022","112,7108594","Jl. Raya Mastrip No.179, RT.002/RW.02, Jajar Tunggal, Kec. Wiyung, Surabaya, Jawa Timur",,,,24/7,FALSE,FALSE,,FALSE,FALSE,TRUE,,,,,2025-12-27T10:34:43.296Z
+13088656191,PICO signature,"-7,1730416","112,6530032","Jalan Veteran, 37",,,,,FALSE,FALSE,,FALSE,FALSE,TRUE,,,,,2025-12-27T10:34:43.296Z
+13152171901,Saat Seduh,"-7,2384364","112,7375361","Jalan Jembatan Merah, 6",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+13152173102,Fifteenth,"-7,2371703","112,7368403",Jalan Mliwis,,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+13158968001,Warkop Bening Naik Kelas,"-7,2775799","112,7453616","Jl. Ngagel No.3, RT.001/RW.04, Ngagel, Kec. Wonokromo, Surabaya, Jawa Timur",,,,24/7,FALSE,FALSE,,FALSE,FALSE,TRUE,,,,,2025-12-27T10:34:43.296Z
+13208310601,Warkop Rizki,"-7,3000901","112,7311326","Jl. Gunung Sari I No.21, Sawunggaling, Kec. Wonokromo, Surabaya, Jawa Timur",,,,Sa-Th 08:00-01:00; Fr 13:00-01:00,FALSE,FALSE,,FALSE,FALSE,TRUE,,,,,2025-12-27T10:34:43.296Z
+13243457501,Warkop Mastrip,"-7,3330515","112,7062878","Jalan Raya Kemlaten No.25, Kebraon, Kec. Karangpilang, Surabaya, Jawa Timur",,,,24/7,FALSE,FALSE,,FALSE,FALSE,TRUE,,,,,2025-12-27T10:34:43.296Z
+13341333102,Amor Resto & Cafe,"-7,3732345","112,7632408","Jl. Raya Sedati Gede No.12, Bono, Sedati Gede, Kec. Sedati, Kabupaten Sidoarjo, Jawa Timur 61253",81223996996,,,Mo-Su 10:00-23:00,FALSE,FALSE,,FALSE,FALSE,TRUE,,,,,2025-12-27T10:34:43.296Z
+13390448301,Warkop Berkah Sedulurans,"-7,3403642","112,7179843","Jl. Raya Wisma Pagesangan No.7, RT.007/RW.04, Menanggal, Kec. Jambangan, Surabaya",,,,24/7,FALSE,FALSE,,FALSE,FALSE,TRUE,,,,,2025-12-27T10:34:43.296Z
+13392508101,Warkop Siipp,"-7,3530277","112,6915967","Jl. Raya Kalijaten No.39A, Kalijaten Timur, Kalijaten, Kec. Taman, Kabupaten Sidoarjo, Jawa Timur",,,,24/7,FALSE,FALSE,,FALSE,FALSE,TRUE,,,,,2025-12-27T10:34:43.296Z
+307346894,Medicine Cafe,"-7,2653731","112,7597966","Jalan Petojo, Pacar Keling, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+314361483,PKL Gunungsari 1,"-7,2995797","112,7325552","Jalan Gunung Sari, Sawunggaling, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+371708393,Coffee Toffee,"-7,2707334","112,7567887","Jalan Airlangga, Airlangga, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+423209899,Coffee Toffee,"-7,2638934","112,7434074","Jalan Raya Dharma Husada, No.181, Genteng, Embong Kaliasin, Surabaya, East Java",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+426896979,Starbucks,"-7,2720932","112,7489729","Jalan Gubeng, 33",,,,"Mo-Th 07:00-23:00, Fr-Su 07:00-23:59",TRUE,TRUE,outside,TRUE,FALSE,TRUE,,Starbucks,,,2025-12-27T10:34:43.296Z
+429000476,Excelso,"-7,2768166","112,749421","Jalan Kertajaya, Gubeng, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+447125584,Unicorn,"-7,2817878","112,7840903","Jalan Manyar Kerta Adi, Manyar Sabrangan, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+447125931,SAS Cafe & Resto,"-7,2701424","112,7985575","Jalan Bhaskara Sawah, Kalisari, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+447611744,Oost Koffie & Thee,"-7,2635666","112,7675936","Jalan Kaliwaron, 60, Gubeng, Jawa Timur, Indonesia",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+459952874,Kopisae,"-7,3395444","112,7739419","Jalan Kyai Abdul Karim, Rungkut Menanggal, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+468207974,Starbucks,"-7,2934107","112,7597588","Jalan Ngagel Jaya Selatan, Baratajaya, Surabaya",,,,,TRUE,TRUE,,TRUE,FALSE,TRUE,,Starbucks,,,2025-12-27T10:34:43.296Z
+602065624,WARKOP R1,"-7,3615037","112,7301198","Jalan Jenderal S Parman, Waru, Waru",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+727358815,Diskuupi 102,"-7,3203883","112,7646828","Jalan Tenggilis Mejoyo AI 33, 33, Surabaya",,https://diskuupi.id,,,FALSE,TRUE,,FALSE,FALSE,TRUE,,,,,2025-12-27T10:34:43.296Z
+767949905,TGC,"-7,2644365","112,7418308","Jalan Simpang Pojok, Embong Kaliasin, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+952357343,Cafe Sawah,"-7,377258","112,6283031","Jalan Raya Trosobo, Rt.3 Rw.6, Sidoarjo",,,,Mo-Su 16:00-23:00,TRUE,TRUE,,FALSE,FALSE,TRUE,,,,,2025-12-27T10:34:43.296Z
+967062750,"Warung Sedulur Tunggal Kopi ""STK""","-7,3368777","112,7755593","Jalan Rungkut Menanggal Harapan Blok S, Rungkut Menanggal, Surabaya",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+990483712,Wangkringan 46,"-7,3486088","112,7809865","jl syaikhoni no No.46, Tambaksumur, Kec. Waru, Kabupaten Sidoarjo, Jawa Timur 61256, 46, Sidoarjo",,,,Mo-Su 17:00-23:00,TRUE,FALSE,separated,FALSE,FALSE,TRUE,,,,,2025-12-27T10:34:43.296Z
+1044659091,Warkop Podo Mampir Geluran,"-7,3558314","112,6909185","Jalan Raya Geluran, Kalijaten, Taman",,,,,FALSE,FALSE,,FALSE,FALSE,FALSE,,,,,2025-12-27T10:34:43.296Z
+1046394796,Kofibrik Manukan,"-7,2658398","112,6663647","Jalan Manukan Tama, 53, surabaya",,,,24/7,TRUE,TRUE,yes,FALSE,FALSE,TRUE,,,,,2025-12-27T10:34:43.296Z
+1131535722,"STK ""Sedulur Tunggal Kopi'","-7,3505598","112,7546094","Jalan Brigjend Katamso, Wedoro, Waru",,,,24/7,TRUE,FALSE,,FALSE,FALSE,TRUE,,,,,2025-12-27T10:34:43.296Z
+fb862569-f8cf-4e1f-a31f-074ec9bfbe6d,Nordic By The Founders,"-7,291126464","112,6546187","Jalan Gapura Lontar Barat, Lidah Kulon, Surabaya",6282289982737,,@nordicthefounders,Mo-Fr 11:00-19:00; Sa-Su 07:00-19:00,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,,,https://res.cloudinary.com/deidrwn14/image/upload/v1766896045/ruangkopi-logos/x3omxzbi3lz1zcweuqyx.jpg,"[""https://res.cloudinary.com/deidrwn14/image/upload/v1766896327/ruangkopi-cafes/iapr2dltgifsmde8tx9s.png""]",2025-12-28T04:35:58.519Z
