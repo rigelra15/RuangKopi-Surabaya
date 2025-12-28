@@ -25,6 +25,8 @@ import {
   type CafeOverrideData,
 } from "../services/customCafeService";
 import { searchCafes, reverseGeocode, type Cafe } from "../services/cafeService";
+import ImageUpload from "../components/ImageUpload";
+import LogoUpload from "../components/LogoUpload";
 
 const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD;
 
@@ -1382,6 +1384,8 @@ function CafeFormModal({
     hasAirConditioning: cafe?.hasAirConditioning || false,
     priceRange: cafe?.priceRange || "medium",
     description: cafe?.description || "",
+    logo: cafe?.logo || undefined,
+    photos: cafe?.photos || [],
   });
 
   // Opening hours per day
@@ -1636,6 +1640,18 @@ function CafeFormModal({
                   placeholder="Contoh: Kopi Kenangan"
                   className={inputClass}
                   required
+                />
+              </div>
+
+              {/* Logo Upload */}
+              <div>
+                <label className={labelClass}>Logo Cafe</label>
+                <LogoUpload
+                  logo={formData.logo || null}
+                  onLogoChange={(logo) =>
+                    setFormData((prev) => ({ ...prev, logo: logo || undefined }))
+                  }
+                  disabled={isSaving}
                 />
               </div>
 
@@ -2002,6 +2018,19 @@ function CafeFormModal({
                   <option value="outside">Hanya di Luar</option>
                   <option value="separated">Area Terpisah</option>
                 </select>
+              </div>
+
+              {/* Photo Upload */}
+              <div>
+                <label className={labelClass}>Foto Cafe</label>
+                <ImageUpload
+                  images={formData.photos || []}
+                  onImagesChange={(photos) =>
+                    setFormData((prev) => ({ ...prev, photos }))
+                  }
+                  maxImages={5}
+                  disabled={isSaving}
+                />
               </div>
             </div>
           )}
