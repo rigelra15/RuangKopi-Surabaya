@@ -171,9 +171,9 @@ function MapController({
   const map = useMap();
   
   useEffect(() => {
-    // Set max bounds to Surabaya area
-    const southWest: [number, number] = [-7.4, 112.6];
-    const northEast: [number, number] = [-7.1, 112.9];
+    // Set max bounds to Surabaya area with wider tolerance
+    const southWest: [number, number] = [-7.6, 112.4];
+    const northEast: [number, number] = [-6.9, 113.1];
     map.setMaxBounds([southWest, northEast]);
   }, [map]);
 
