@@ -12,6 +12,9 @@ export interface CustomCafe extends Cafe {
   instagram?: string;
   priceRange?: 'low' | 'medium' | 'high';
   description?: string;
+  logo?: string; // Cloudinary URL
+  photos?: string[]; // Cloudinary URLs
+  menuUrl?: string;
 }
 
 // Form data for submitting a new cafe
@@ -33,7 +36,10 @@ export interface CustomCafeFormData {
   hasAirConditioning?: boolean;
   priceRange?: 'low' | 'medium' | 'high';
   description?: string;
+  logo?: string; // Cloudinary URL
+  photos?: string[]; // Cloudinary URLs
 }
+
 
 // Issue report data
 export interface IssueReportData {
@@ -79,6 +85,7 @@ export async function addCustomCafe(formData: CustomCafeFormData): Promise<strin
       },
       body: JSON.stringify({
         key: SECRET_KEY,
+        action: 'add',
         cafe: formData,
       }),
     });
@@ -122,6 +129,8 @@ export async function getCustomCafes(): Promise<CustomCafe[]> {
       website: item.website as string | undefined,
       openingHours: item.openingHours as string | undefined,
       instagram: item.instagram as string | undefined,
+      menuUrl: item.menuUrl as string | undefined,
+      logo: item.logo as string | undefined,
       hasWifi: item.hasWifi === true || item.hasWifi === 'true',
       wifiFree: item.wifiFree === true || item.wifiFree === 'true',
       hasOutdoorSeating: item.hasOutdoorSeating === true || item.hasOutdoorSeating === 'true',
@@ -131,6 +140,12 @@ export async function getCustomCafes(): Promise<CustomCafe[]> {
       priceRange: item.priceRange as 'low' | 'medium' | 'high' | undefined,
       description: item.description as string | undefined,
       submittedAt: item.submittedAt as string | undefined,
+      // Parse photos - stored as comma-separated URLs or JSON array
+      photos: item.photos 
+        ? (typeof item.photos === 'string' 
+            ? (item.photos.startsWith('[') ? JSON.parse(item.photos) : item.photos.split(',').map((s: string) => s.trim()).filter(Boolean))
+            : item.photos as string[])
+        : undefined,
       isCustom: true as const,
     }));
 

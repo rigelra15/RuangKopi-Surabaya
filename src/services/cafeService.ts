@@ -22,6 +22,10 @@ export interface Cafe {
   operator?: string;
   // Menu link
   menuUrl?: string;
+  // Logo (Cloudinary URL)
+  logo?: string;
+  // Photos (Cloudinary URLs)
+  photos?: string[];
   // Flag for custom cafes (user-submitted)
   isCustom?: boolean;
   // Flag for overridden cafes (Overpass + user edits)
