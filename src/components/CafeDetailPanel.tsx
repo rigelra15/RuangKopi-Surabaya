@@ -4,7 +4,8 @@ import { Icon } from '@iconify/react';
 import type { Cafe } from '../services/cafeService';
 import { reverseGeocode } from '../services/cafeService';
 import { isFavorite, toggleFavorite, formatDistance, calculateDistance } from '../services/favoritesService';
-import { getThumbnailUrl } from '../services/imageService';
+import { getThumbnailUrl, uploadMultipleImages, type CloudinaryUploadResult } from '../services/imageService';
+import { updateCustomCafe } from '../services/customCafeService';
 import Toast from './Toast';
 import ReportIssueModal from './ReportIssueModal';
 import PhotoGallery from './PhotoGallery';
@@ -217,6 +218,13 @@ export default function CafeDetailPanel({
   const [showReportModal, setShowReportModal] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   
+  // Photo upload state
+  const [isUploadingPhotos, setIsUploadingPhotos] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState({ current: 0, total: 0 });
+  const [cafePhotos, setCafePhotos] = useState<string[]>([]);
+  const [pendingPhotos, setPendingPhotos] = useState<File[]>([]); // Photos waiting for preview/confirm
+  const [photoPreviewUrls, setPhotoPreviewUrls] = useState<string[]>([]); // Preview URLs for pending photos
+  
   // Drag controls for bottom sheet swipe-to-close
   const dragControls = useDragControls();
 
@@ -276,6 +284,86 @@ export default function CafeDetailPanel({
     // Always fetch address via reverse geocoding for more complete results
     fetchAddress(cafe.id, cafe.lat, cafe.lon);
   }, [cafe, isOpen, fetchAddress]);
+
+  // Sync cafe photos
+  useEffect(() => {
+    if (cafe?.photos) {
+      setCafePhotos(cafe.photos);
+    } else {
+      setCafePhotos([]);
+    }
+  }, [cafe]);
+
+  // Handle file selection (for preview)
+  const handleFileSelect = useCallback((files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    
+    const fileArray = Array.from(files);
+    setPendingPhotos(fileArray);
+    
+    // Create preview URLs
+    const previewUrls = fileArray.map(file => URL.createObjectURL(file));
+    setPhotoPreviewUrls(previewUrls);
+  }, []);
+
+  // Cancel pending upload
+  const handleCancelUpload = useCallback(() => {
+    // Revoke preview URLs to free memory
+    photoPreviewUrls.forEach(url => URL.revokeObjectURL(url));
+    setPendingPhotos([]);
+    setPhotoPreviewUrls([]);
+  }, [photoPreviewUrls]);
+
+  // Confirm and upload photos
+  const handleConfirmUpload = useCallback(async () => {
+    if (pendingPhotos.length === 0 || !cafe) return;
+    
+    setIsUploadingPhotos(true);
+    setUploadProgress({ current: 0, total: pendingPhotos.length });
+    
+    try {
+      const results = await uploadMultipleImages(
+        pendingPhotos,
+        'ruangkopi-user-photos',
+        (current, total) => setUploadProgress({ current, total })
+      );
+      
+      const newPhotoUrls: string[] = [];
+      results.forEach((result: CloudinaryUploadResult) => {
+        if (result.success && result.url) {
+          newPhotoUrls.push(result.url);
+        }
+      });
+      
+      if (newPhotoUrls.length > 0) {
+        const updatedPhotos = [...cafePhotos, ...newPhotoUrls];
+        
+        // Update cafe in database
+        await updateCustomCafe(cafe.id, { photos: updatedPhotos });
+        
+        // Update local state
+        setCafePhotos(updatedPhotos);
+        
+        // Show success toast
+        setToastMessage(language === 'id' 
+          ? `${newPhotoUrls.length} foto berhasil ditambahkan!` 
+          : `${newPhotoUrls.length} photo(s) added successfully!`);
+        setToastType('success');
+        setShowToast(true);
+      }
+      
+      // Clear pending photos
+      handleCancelUpload();
+    } catch (error) {
+      console.error('Error uploading photos:', error);
+      setToastMessage(language === 'id' ? 'Gagal mengupload foto' : 'Failed to upload photos');
+      setToastType('error');
+      setShowToast(true);
+    } finally {
+      setIsUploadingPhotos(false);
+      setUploadProgress({ current: 0, total: 0 });
+    }
+  }, [cafe, cafePhotos, language, pendingPhotos, handleCancelUpload]);
 
   const handleToggleFavorite = () => {
     if (cafe) {
@@ -642,17 +730,140 @@ export default function CafeDetailPanel({
 
             {/* Scrollable Content Area */}
             <div className="flex-1 overflow-y-auto scrollbar-hide">
-              {/* Photo Gallery */}
-              {cafe.photos && cafe.photos.length > 0 && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.15 }}
-                  className="px-4 pt-2 pb-2"
-                >
-                  <PhotoGallery photos={cafe.photos} cafeName={cafe.name} />
-                </motion.div>
-              )}
+              {/* Photo Gallery Section */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.15 }}
+                className="px-4 pt-2 pb-2"
+              >
+                {/* Gallery Header with Add Photo button */}
+                <div className="flex items-center justify-between mb-2">
+                  <span className={`text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                    <Icon icon="mdi:image-multiple" className="w-4 h-4 inline mr-1" />
+                    {language === 'id' ? 'Galeri Foto' : 'Photo Gallery'} 
+                    {cafePhotos.length > 0 && ` (${cafePhotos.length})`}
+                  </span>
+                  <label className={`
+                    flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium cursor-pointer transition-all
+                    ${pendingPhotos.length > 0 ? 'opacity-50 cursor-not-allowed' : ''}
+                    ${isDarkMode 
+                      ? 'bg-primary-500/20 text-primary-400 hover:bg-primary-500/30' 
+                      : 'bg-primary-100 text-primary-600 hover:bg-primary-200'
+                    }
+                  `}>
+                    <Icon icon="mdi:camera-plus" className="w-4 h-4" />
+                    {language === 'id' ? 'Tambah Foto' : 'Add Photo'}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      className="hidden"
+                      onChange={(e) => {
+                        handleFileSelect(e.target.files);
+                        e.target.value = ''; // Reset input
+                      }}
+                      disabled={isUploadingPhotos || pendingPhotos.length > 0}
+                    />
+                  </label>
+                </div>
+
+                {/* Photo Preview Section */}
+                {photoPreviewUrls.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={`mb-3 p-3 rounded-xl ${isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-gray-100 border border-gray-200'}`}
+                  >
+                    <p className={`text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                      {language === 'id' ? 'Preview Foto' : 'Photo Preview'} ({photoPreviewUrls.length})
+                    </p>
+                    <div className="grid grid-cols-3 gap-2 mb-3">
+                      {photoPreviewUrls.map((url, index) => (
+                        <div key={index} className="aspect-square rounded-lg overflow-hidden bg-gray-700">
+                          <img src={url} alt={`Preview ${index + 1}`} className="w-full h-full object-cover" />
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleCancelUpload}
+                        disabled={isUploadingPhotos}
+                        className={`
+                          flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors
+                          ${isDarkMode 
+                            ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                          }
+                          disabled:opacity-50
+                        `}
+                      >
+                        <Icon icon="mdi:close" className="w-4 h-4 inline mr-1" />
+                        {language === 'id' ? 'Batal' : 'Cancel'}
+                      </button>
+                      <button
+                        onClick={handleConfirmUpload}
+                        disabled={isUploadingPhotos}
+                        className={`
+                          flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors
+                          bg-primary-500 text-white hover:bg-primary-400
+                          disabled:opacity-50
+                        `}
+                      >
+                        {isUploadingPhotos ? (
+                          <>
+                            <Icon icon="mdi:loading" className="w-4 h-4 inline mr-1 animate-spin" />
+                            {uploadProgress.total > 0 ? `${uploadProgress.current}/${uploadProgress.total}` : '...'}
+                          </>
+                        ) : (
+                          <>
+                            <Icon icon="mdi:upload" className="w-4 h-4 inline mr-1" />
+                            {language === 'id' ? 'Unggah' : 'Upload'}
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* Upload Progress (when uploading) */}
+                {isUploadingPhotos && photoPreviewUrls.length === 0 && (
+                  <div className={`mb-3 p-3 rounded-xl ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Icon icon="mdi:loading" className="w-4 h-4 animate-spin text-primary-500" />
+                      <span className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                        {language === 'id' ? 'Mengupload foto...' : 'Uploading photos...'}
+                        {uploadProgress.total > 0 && ` (${uploadProgress.current}/${uploadProgress.total})`}
+                      </span>
+                    </div>
+                    <div className="w-full h-2 bg-gray-300 dark:bg-gray-700 rounded-full overflow-hidden">
+                      <motion.div 
+                        className="h-full bg-primary-500 rounded-full"
+                        initial={{ width: 0 }}
+                        animate={{ width: uploadProgress.total > 0 ? `${(uploadProgress.current / uploadProgress.total) * 100}%` : '50%' }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Photo Gallery */}
+                {cafePhotos.length > 0 ? (
+                  <PhotoGallery photos={cafePhotos} cafeName={cafe.name} />
+                ) : (
+                  <div className={`
+                    text-center py-8 rounded-xl border-2 border-dashed
+                    ${isDarkMode ? 'border-gray-700 text-gray-500' : 'border-gray-300 text-gray-400'}
+                  `}>
+                    <Icon icon="mdi:image-off-outline" className="w-10 h-10 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">
+                      {language === 'id' ? 'Belum ada foto' : 'No photos yet'}
+                    </p>
+                    <p className="text-xs mt-1 opacity-75">
+                      {language === 'id' ? 'Jadilah yang pertama menambahkan foto!' : 'Be the first to add a photo!'}
+                    </p>
+                  </div>
+                )}
+              </motion.div>
 
               {/* Content */}
               <div className="px-4 pb-4 space-y-3">
