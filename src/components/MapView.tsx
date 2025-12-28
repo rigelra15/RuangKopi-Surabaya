@@ -317,32 +317,7 @@ export default function MapView({
               eventHandlers={{
                 click: () => onCafeSelect(cafe),
               }}
-            >
-            <Popup>
-              <div className="min-w-[200px]">
-                <h3 className="font-bold text-lg text-gray-900 mb-1">{cafe.name}</h3>
-                {cafe.address && (
-                  <p className="text-sm text-gray-600 mb-2">{cafe.address}</p>
-                )}
-                {cafe.openingHours && (
-                  <p className="text-sm text-gray-600 mb-1">{cafe.openingHours}</p>
-                )}
-                {cafe.phone && (
-                  <p className="text-sm text-gray-600 mb-1">{cafe.phone}</p>
-                )}
-                {cafe.website && (
-                  <a 
-                    href={cafe.website} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-sm text-primary-600 hover:underline"
-                  >
-                    Website
-                  </a>
-                )}
-              </div>
-            </Popup>
-          </Marker>
+            />
           );
         })}
       </MarkerClusterGroup>
