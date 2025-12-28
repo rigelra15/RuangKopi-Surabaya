@@ -123,7 +123,7 @@ export default function IntroductionModal({
             animate="visible"
             exit="exit"
             className={`
-              absolute inset-0 backdrop-blur-sm
+              absolute inset-0 backdrop-blur-[1px]
               ${isDarkMode ? 'bg-black/60' : 'bg-black/40'}
             `}
             onClick={handleClose}

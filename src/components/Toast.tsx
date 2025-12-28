@@ -71,7 +71,7 @@ export default function Toast({
             top-4 left-1/2 -translate-x-1/2
             md:top-auto md:bottom-6 md:left-auto md:right-6 md:translate-x-0
             flex items-center gap-3 px-4 py-3 rounded-xl
-            border shadow-lg backdrop-blur-xl
+            border shadow-lg backdrop-blur-[1px]
             ${isDarkMode ? config.bgDark : config.bgLight}
           `}
         >

@@ -61,7 +61,7 @@ export default function VisitStats({ isDarkMode, language }: VisitStatsProps) {
                 ? 'bg-gray-900/95 border border-gray-700/50' 
                 : 'bg-white/95 border border-gray-200/50'
               }
-              backdrop-blur-xl shadow-xl
+              backdrop-blur-[1px] shadow-xl
             `}
           >
             {/* Header */}
@@ -185,7 +185,7 @@ export default function VisitStats({ isDarkMode, language }: VisitStatsProps) {
             ? 'bg-gray-800/90 hover:bg-gray-700 text-white'
             : 'bg-white/90 hover:bg-white text-gray-800'
           }
-          backdrop-blur-xl shadow-lg border
+          backdrop-blur-[1px] shadow-lg border
           ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}
           ${isExpanded ? 'ring-2 ring-primary-500/50' : ''}
         `}

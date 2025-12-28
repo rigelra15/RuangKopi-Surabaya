@@ -32,7 +32,7 @@ export default function NotFoundPage() {
           <motion.div
             animate={{ y: [-5, 5, -5] }}
             transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
-            className="absolute -top-4 -right-4 w-12 h-12 bg-amber-500/20 rounded-full flex items-center justify-center backdrop-blur-sm"
+            className="absolute -top-4 -right-4 w-12 h-12 bg-amber-500/20 rounded-full flex items-center justify-center backdrop-blur-[1px]"
           >
             <Icon icon="mdi:map-marker-question" className="w-6 h-6 text-amber-400" />
           </motion.div>

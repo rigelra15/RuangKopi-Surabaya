@@ -142,7 +142,7 @@ export default function ReportIssueModal({
         >
           {/* Backdrop */}
           <motion.div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/60 backdrop-blur-[1px]"
             onClick={onClose}
           />
 

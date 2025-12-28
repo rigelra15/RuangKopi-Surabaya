@@ -194,8 +194,8 @@ export default function SearchBox({
               : 'shadow-black/10 dark:shadow-black/30'
             }
             ${isDarkMode 
-              ? 'bg-gray-900/90 backdrop-blur-xl border border-gray-700/50' 
-              : 'bg-white/95 backdrop-blur-xl border border-gray-200/50'
+              ? 'bg-gray-900/90 backdrop-blur-[1px] border border-gray-700/50' 
+              : 'bg-white/95 backdrop-blur-[1px] border border-gray-200/50'
             }
           `}
         >
@@ -336,8 +336,8 @@ export default function SearchBox({
             rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden
             max-h-[50vh] sm:max-h-[60vh] overflow-y-auto
             ${isDarkMode 
-              ? 'bg-gray-900/95 backdrop-blur-xl border border-gray-700/50' 
-              : 'bg-white/95 backdrop-blur-xl border border-gray-200/50'
+              ? 'bg-gray-900/95 backdrop-blur-[1px] border border-gray-700/50' 
+              : 'bg-white/95 backdrop-blur-[1px] border border-gray-200/50'
             }
           `}
         >

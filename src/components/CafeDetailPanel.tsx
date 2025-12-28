@@ -366,7 +366,7 @@ export default function CafeDetailPanel({
                 ? 'bg-gray-900/95 text-white border-gray-700'
                 : 'bg-white/95 text-gray-900 border-gray-200'
               }
-              backdrop-blur-xl shadow-2xl border-t md:border
+              backdrop-blur-[1px] shadow-2xl border-t md:border
             `}
           >
             {/* Drag Handle for Mobile */}
@@ -378,7 +378,7 @@ export default function CafeDetailPanel({
             <div className={`
               sticky top-0 z-10 
               ${isDarkMode ? 'bg-gray-900/95' : 'bg-white/95'}
-              backdrop-blur-xl
+              backdrop-blur-[1px]
             `}>
               {/* Header Content */}
               <div className="flex items-start justify-between px-4 pb-2 pt-1 md:pt-4 gap-3">

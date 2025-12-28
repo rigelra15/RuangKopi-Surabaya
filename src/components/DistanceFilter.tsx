@@ -71,7 +71,7 @@ export default function DistanceFilter({
                 ? 'bg-gray-800/90 hover:bg-gray-700 text-white'
                 : 'bg-white/90 hover:bg-white text-gray-800'
           }
-          backdrop-blur-xl shadow-lg border
+          backdrop-blur-[1px] shadow-lg border
           ${currentDistance !== null 
             ? 'border-primary-400'
             : isDarkMode ? 'border-gray-700' : 'border-gray-200'
@@ -133,7 +133,7 @@ export default function DistanceFilter({
                 ? 'bg-gray-800 border-gray-700'
                 : 'bg-white border-gray-200'
               }
-              backdrop-blur-xl shadow-xl border
+              backdrop-blur-[1px] shadow-xl border
             `}
           >
             {DISTANCE_OPTIONS.map((option) => {

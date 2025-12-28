@@ -226,8 +226,8 @@ function App() {
         <div className={`
           flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl
           ${isDarkMode 
-            ? 'bg-gray-900/90 backdrop-blur-xl border border-gray-700/50' 
-            : 'bg-white/95 backdrop-blur-xl border border-gray-200/50'
+            ? 'bg-gray-900/90 backdrop-blur-[1px] border border-gray-700/50' 
+            : 'bg-white/95 backdrop-blur-[1px] border border-gray-200/50'
           }
           shadow-lg
         `}>
@@ -283,7 +283,7 @@ function App() {
                 ? 'bg-gray-800/90 hover:bg-gray-700 text-white'
                 : 'bg-white/90 hover:bg-white text-gray-800'
               }
-              backdrop-blur-xl shadow-lg border
+              backdrop-blur-[1px] shadow-lg border
               ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}
             `}
           >
@@ -333,7 +333,7 @@ function App() {
               ? 'bg-gray-900/90 text-white border border-gray-700/50' 
               : 'bg-white/95 text-gray-900 border border-gray-200/50'
             }
-            backdrop-blur-xl shadow-md
+            backdrop-blur-[1px] shadow-md
             text-xs font-medium
           `}>
             <Icon icon="mdi:coffee" className="w-3.5 h-3.5 inline mr-1" />

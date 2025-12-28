@@ -146,13 +146,13 @@ export default function PhotoGallery({ photos, cafeName }: PhotoGalleryProps) {
             </motion.div>
 
             {/* Image counter */}
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 bg-white/10 text-white rounded-full text-sm backdrop-blur-sm">
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 bg-white/10 text-white rounded-full text-sm backdrop-blur-[1px]">
               {selectedIndex + 1} / {photos.length}
             </div>
 
             {/* Thumbnail strip */}
             {photos.length > 1 && (
-              <div className="absolute bottom-16 left-1/2 -translate-x-1/2 flex gap-2 px-4 py-2 bg-black/50 rounded-xl backdrop-blur-sm max-w-[80vw] overflow-x-auto">
+              <div className="absolute bottom-16 left-1/2 -translate-x-1/2 flex gap-2 px-4 py-2 bg-black/50 rounded-xl backdrop-blur-[1px] max-w-[80vw] overflow-x-auto">
                 {photos.map((photo, index) => (
                   <button
                     key={photo}

@@ -130,7 +130,7 @@ export default function FavoritesPanel({
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="fixed inset-0 bg-black/40 z-[1005] backdrop-blur-sm md:flex md:items-center md:justify-center"
+            className="fixed inset-0 bg-black/40 z-[1005] backdrop-blur-[1px] md:flex md:items-center md:justify-center"
             onClick={onClose}
           >
             {/* Panel */}
