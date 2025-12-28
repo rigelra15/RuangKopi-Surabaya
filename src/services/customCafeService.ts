@@ -39,7 +39,7 @@ export interface CustomCafeFormData {
   hasWifi?: boolean;
   wifiFree?: boolean;
   hasOutdoorSeating?: boolean;
-  smokingPolicy?: 'yes' | 'no' | 'outside' | 'separated';
+  smokingPolicy?: 'yes' | 'no' | 'outside' | 'separated' | '';
   hasTakeaway?: boolean;
   hasAirConditioning?: boolean;
   goodForWorking?: boolean;
