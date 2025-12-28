@@ -56,6 +56,7 @@ export default function AddCafeModal({
     smokingPolicy: 'no',
     hasTakeaway: false,
     hasAirConditioning: false,
+    goodForWorking: false,
     priceRange: 'medium',
     description: '',
   });
@@ -94,6 +95,7 @@ export default function AddCafeModal({
     hasOutdoorSeating: language === 'id' ? 'Outdoor Seating' : 'Outdoor Seating',
     hasTakeaway: language === 'id' ? 'Takeaway' : 'Takeaway',
     hasAC: language === 'id' ? 'AC' : 'Air Conditioning',
+    goodForWorking: language === 'id' ? 'Cocok untuk WFC/Laptop' : 'Good for Working/Laptop',
     smokingPolicy: language === 'id' ? 'Kebijakan Merokok' : 'Smoking Policy',
     smokingNo: language === 'id' ? 'Dilarang' : 'No Smoking',
     smokingYes: language === 'id' ? 'Boleh' : 'Allowed',
@@ -147,6 +149,7 @@ export default function AddCafeModal({
         smokingPolicy: 'no',
         hasTakeaway: false,
         hasAirConditioning: false,
+        goodForWorking: false,
         priceRange: 'medium',
         description: '',
       });
@@ -699,6 +702,17 @@ export default function AddCafeModal({
             />
             <span className={isDarkMode ? 'text-gray-300' : 'text-gray-700'}>{t.hasAC}</span>
           </div>
+
+          <div 
+            className={checkboxClass}
+            onClick={() => handleCheckboxChange('goodForWorking')}
+          >
+            <Icon 
+              icon={formData.goodForWorking ? 'mdi:checkbox-marked' : 'mdi:checkbox-blank-outline'} 
+              className={`w-5 h-5 ${formData.goodForWorking ? 'text-primary-500' : isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}
+            />
+            <span className={isDarkMode ? 'text-gray-300' : 'text-gray-700'}>{t.goodForWorking}</span>
+          </div>
         </div>
       </div>
 
@@ -731,7 +745,7 @@ export default function AddCafeModal({
         >
           {/* Backdrop */}
           <motion.div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/60 backdrop-blur-[1px]"
             onClick={onClose}
           />
 
