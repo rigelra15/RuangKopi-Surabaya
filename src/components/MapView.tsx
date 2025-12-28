@@ -97,6 +97,46 @@ const createCoffeeIcon = () => {
   });
 };
 
+// Selected cafe marker icon - bigger and different color
+const createSelectedCoffeeIcon = () => {
+  return L.divIcon({
+    className: 'custom-cafe-marker-selected',
+    html: `
+      <div style="
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, #059669 0%, #10B981 100%);
+        border-radius: 50% 50% 50% 0;
+        transform: rotate(-45deg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 6px 20px rgba(5, 150, 105, 0.5), 0 0 0 4px rgba(16, 185, 129, 0.3);
+        border: 3px solid white;
+        animation: pulse 2s infinite;
+      ">
+        <svg 
+          xmlns="http://www.w3.org/2000/svg" 
+          viewBox="0 0 24 24" 
+          fill="white" 
+          style="width: 24px; height: 24px; transform: rotate(45deg);"
+        >
+          <path d="M2 21h18v-2H2M20 8h-2V5h2m0-2H4v10a4 4 0 004 4h6a4 4 0 004-4v-3h2a2 2 0 002-2V5a2 2 0 00-2-2z"/>
+        </svg>
+      </div>
+      <style>
+        @keyframes pulse {
+          0%, 100% { box-shadow: 0 6px 20px rgba(5, 150, 105, 0.5), 0 0 0 4px rgba(16, 185, 129, 0.3); }
+          50% { box-shadow: 0 6px 20px rgba(5, 150, 105, 0.7), 0 0 0 8px rgba(16, 185, 129, 0.2); }
+        }
+      </style>
+    `,
+    iconSize: [48, 48],
+    iconAnchor: [24, 48],
+    popupAnchor: [0, -48],
+  });
+};
+
 // User location icon
 const createUserIcon = () => {
   return L.divIcon({
@@ -118,7 +158,7 @@ const createUserIcon = () => {
 
 // Component to handle map movements and popup sync
 function MapController({ 
-  userLocation, 
+  userLocation: _userLocation, // Kept for potential future use
   selectedCafe,
   showCafeDetail,
   markerRefs 
@@ -137,17 +177,18 @@ function MapController({
     map.setMaxBounds([southWest, northEast]);
   }, [map]);
 
-  // Pan to user location when it changes
-  useEffect(() => {
-    if (userLocation) {
-      map.flyTo(userLocation, 15, { duration: 1.5 });
-    }
-  }, [map, userLocation]);
+  // Pan to user location when it changes - DISABLED: Just show marker without zooming
+  // useEffect(() => {
+  //   if (userLocation) {
+  //     map.flyTo(userLocation, 15, { duration: 1.5 });
+  //   }
+  // }, [map, userLocation]);
 
   // Pan to selected cafe when it changes
   useEffect(() => {
     if (selectedCafe) {
-      map.flyTo([selectedCafe.lat, selectedCafe.lon], 16, { duration: 1 });
+      // Zoom to max level (18) for selected cafe
+      map.flyTo([selectedCafe.lat, selectedCafe.lon], 18, { duration: 1 });
     }
   }, [map, selectedCafe]);
 
@@ -195,6 +236,7 @@ export default function MapView({
 
   // Memoize icons
   const coffeeIcon = useMemo(() => createCoffeeIcon(), []);
+  const selectedCoffeeIcon = useMemo(() => createSelectedCoffeeIcon(), []);
   const userIcon = useMemo(() => createUserIcon(), []);
 
   // Store refs to markers for popup control
@@ -263,16 +305,19 @@ export default function MapView({
         zoomToBoundsOnClick={true}
         disableClusteringAtZoom={17}
       >
-        {cafes.map((cafe) => (
-          <Marker 
-            key={cafe.id} 
-            position={[cafe.lat, cafe.lon]} 
-            icon={coffeeIcon}
-            ref={(marker) => setMarkerRef(cafe.id, marker)}
-            eventHandlers={{
-              click: () => onCafeSelect(cafe),
-            }}
-          >
+        {cafes.map((cafe) => {
+          const isSelected = selectedCafe?.id === cafe.id;
+          return (
+            <Marker 
+              key={cafe.id} 
+              position={[cafe.lat, cafe.lon]} 
+              icon={isSelected ? selectedCoffeeIcon : coffeeIcon}
+              zIndexOffset={isSelected ? 1000 : 0}
+              ref={(marker) => setMarkerRef(cafe.id, marker)}
+              eventHandlers={{
+                click: () => onCafeSelect(cafe),
+              }}
+            >
             <Popup>
               <div className="min-w-[200px]">
                 <h3 className="font-bold text-lg text-gray-900 mb-1">{cafe.name}</h3>
@@ -298,7 +343,8 @@ export default function MapView({
               </div>
             </Popup>
           </Marker>
-        ))}
+          );
+        })}
       </MarkerClusterGroup>
     </MapContainer>
   );
