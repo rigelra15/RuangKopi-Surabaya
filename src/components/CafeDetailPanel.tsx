@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import { Icon } from '@iconify/react';
 import type { Cafe } from '../services/cafeService';
 import { reverseGeocode } from '../services/cafeService';
@@ -16,6 +16,7 @@ interface CafeDetailPanelProps {
   userLocation: [number, number] | null;
   language: 'id' | 'en';
   isOpen: boolean;
+  onHeightChange?: (height: number) => void;
 }
 
 // Helper function to format cuisine string
@@ -33,9 +34,89 @@ function formatCuisine(cuisine: unknown): string {
     .join(' ');
 }
 
+// Helper function to get current opening status
+function getCurrentOpeningStatus(hours: unknown): { isOpen: boolean, closingSoon: boolean, closingTime: string | null, openingTime: string | null } {
+  if (typeof hours !== 'string' || hours.toLowerCase() === 'true' || hours.toLowerCase() === 'false') {
+    return { isOpen: false, closingSoon: false, closingTime: null, openingTime: null };
+  }
+
+  const now = new Date();
+  const currentDay = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
+  const currentTime = now.getHours() * 60 + now.getMinutes(); // Current time in minutes
+  const dayAbbreviations = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+  const currentDayAbbr = dayAbbreviations[currentDay];
+
+  // Split by semicolon or comma to get individual entries
+  const entries = hours.split(/[;,]/).map(s => s.trim()).filter(Boolean);
+
+  for (const entry of entries) {
+    // Check if this entry applies to current day
+    const dayPart = entry.split(/\s+/)[0];
+    let appliesToday = false;
+
+    if (dayPart === currentDayAbbr) {
+      appliesToday = true;
+    } else {
+      // Check for range like Mo-Fr
+      const rangeMatch = dayPart.match(/^([A-Z][a-z])-([A-Z][a-z])$/);
+      if (rangeMatch) {
+        const startDay = dayAbbreviations.indexOf(rangeMatch[1]);
+        const endDay = dayAbbreviations.indexOf(rangeMatch[2]);
+        if (startDay !== -1 && endDay !== -1) {
+          if (startDay <= endDay) {
+            appliesToday = currentDay >= startDay && currentDay <= endDay;
+          } else {
+            appliesToday = currentDay >= startDay || currentDay <= endDay;
+          }
+        }
+      }
+    }
+
+    if (appliesToday) {
+      // Check if closed
+      if (/\b(off|tutup|closed)\b/i.test(entry)) {
+        return { isOpen: false, closingSoon: false, closingTime: null, openingTime: null };
+      }
+
+      // Extract time range
+      const timeMatch = entry.match(/(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})/);
+      if (timeMatch) {
+        const openHour = parseInt(timeMatch[1]);
+        const openMin = parseInt(timeMatch[2]);
+        const closeHour = parseInt(timeMatch[3]);
+        const closeMin = parseInt(timeMatch[4]);
+
+        const openTime = openHour * 60 + openMin;
+        let closeTime = closeHour * 60 + closeMin;
+
+        // Handle midnight closing (e.g., 23:59 or 00:00)
+        if (closeTime < openTime) {
+          closeTime += 24 * 60; // Add 24 hours
+        }
+
+        const adjustedCurrentTime = currentTime < openTime && closeTime > 24 * 60 ? currentTime + 24 * 60 : currentTime;
+
+        if (adjustedCurrentTime >= openTime && adjustedCurrentTime < closeTime) {
+          // Currently open
+          const minutesUntilClose = closeTime - adjustedCurrentTime;
+          const closingSoon = minutesUntilClose <= 60; // Within 1 hour
+          const closingTimeStr = `${String(closeHour).padStart(2, '0')}:${String(closeMin).padStart(2, '0')}`;
+          return { isOpen: true, closingSoon, closingTime: closingTimeStr, openingTime: null };
+        } else if (adjustedCurrentTime < openTime) {
+          // Not yet open
+          const openingTimeStr = `${String(openHour).padStart(2, '0')}:${String(openMin).padStart(2, '0')}`;
+          return { isOpen: false, closingSoon: false, closingTime: null, openingTime: openingTimeStr };
+        }
+      }
+    }
+  }
+
+  return { isOpen: false, closingSoon: false, closingTime: null, openingTime: null };
+}
+
 // Helper function to parse opening hours into structured data
 // Converts OSM format like "Mo-Th 07:00-23:00, Fr-Su 07:00-23:59" to array of {days, hours}
-function parseOpeningHours(hours: unknown, language: 'id' | 'en'): Array<{days: string, hours: string, isClosed: boolean}> {
+function parseOpeningHours(hours: unknown, language: 'id' | 'en'): Array<{days: string, hours: string, isClosed: boolean, originalDays: string}> {
   if (typeof hours !== 'string') {
     return [];
   }
@@ -76,10 +157,12 @@ function parseOpeningHours(hours: unknown, language: 'id' | 'en'): Array<{days: 
     if (isClosed) {
       // Extract day part before 'off' or 'Tutup'
       const dayMatch = formatted.match(/^([^\s]+(?:\s*-\s*[^\s]+)?)/);
+      const dayText = dayMatch ? dayMatch[1].trim() : formatted;
       return {
-        days: dayMatch ? dayMatch[1].trim() : formatted,
+        days: dayText,
         hours: closedText,
-        isClosed: true
+        isClosed: true,
+        originalDays: entry.split(/\s+/)[0] // Store original for day matching
       };
     }
     
@@ -88,17 +171,20 @@ function parseOpeningHours(hours: unknown, language: 'id' | 'en'): Array<{days: 
     const match = formatted.match(/^([^\d]+)\s+(.+)$/);
     
     if (match) {
+      const timeWithWIB = match[2].trim() + ' WIB';
       return {
         days: match[1].trim(),
-        hours: match[2].trim(),
-        isClosed: false
+        hours: timeWithWIB,
+        isClosed: false,
+        originalDays: entry.split(/\s+/)[0] // Store original for day matching
       };
     }
     
     return {
       days: formatted,
       hours: '',
-      isClosed: false
+      isClosed: false,
+      originalDays: entry.split(/\s+/)[0]
     };
   }).filter(entry => entry.days || entry.hours);
 }
@@ -115,6 +201,7 @@ export default function CafeDetailPanel({
   userLocation,
   language,
   isOpen,
+  onHeightChange,
 }: CafeDetailPanelProps) {
   // Derive initial state from cafe prop
   const [isFav, setIsFav] = useState(() => cafe ? isFavorite(cafe.id) : false);
@@ -129,6 +216,9 @@ export default function CafeDetailPanel({
   // Report modal state
   const [showReportModal, setShowReportModal] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  
+  // Drag controls for bottom sheet swipe-to-close
+  const dragControls = useDragControls();
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -235,7 +325,7 @@ export default function CafeDetailPanel({
       openingHours: 'Jam Buka',
       noAddress: 'Alamat tidak tersedia',
       loadingAddress: 'Memuat alamat...',
-      fromYou: 'dari lokasi Anda',
+      fromYou: 'dari Anda',
       // Amenities
       amenities: 'Fasilitas',
       wifi: 'WiFi',
@@ -293,12 +383,6 @@ export default function CafeDetailPanel({
   const text = t[language];
 
   // Animation variants
-  const backdropVariants = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1 },
-    exit: { opacity: 0 },
-  };
-
   const panelVariants = {
     hidden: { 
       y: '100%',
@@ -360,16 +444,6 @@ export default function CafeDetailPanel({
     <AnimatePresence mode="wait">
       {isOpen && cafe && (
         <>
-          {/* Backdrop - only on mobile */}
-          <motion.div
-            variants={backdropVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            className="fixed inset-0 bg-black/30 z-[1001] md:hidden"
-            onClick={onClose}
-          />
-          
           {/* Panel */}
           <motion.div
             variants={!isMobile ? desktopPanelVariants : panelVariants}
@@ -378,39 +452,53 @@ export default function CafeDetailPanel({
             exit="exit"
             drag={isMobile ? 'y' : false}
             dragConstraints={{ top: 0, bottom: 0 }}
-            dragElastic={{ top: 0, bottom: 0.2 }}
+            dragElastic={{ top: 0, bottom: 0.3 }}
+            dragControls={dragControls}
+            dragListener={false}
             onDragEnd={(_e, info) => {
               // Close if dragged down more than 100px or flicked down fast
               if (info.offset.y > 100 || info.velocity.y > 200) {
                 onClose();
               }
             }}
+            onAnimationComplete={() => {
+              // Notify parent about the panel height for map adjustment
+              if (isMobile && onHeightChange) {
+                onHeightChange(window.innerHeight * 0.65);
+              }
+            }}
             className={`
               fixed z-[1002]
               /* Mobile: bottom sheet with max-height for map visibility */
               bottom-0 left-0 right-0
-              max-h-[65vh] overflow-y-auto scrollbar-hide
+              max-h-[65vh] flex flex-col
+              /* Mobile: only top corners rounded, bottom flat against screen edge */
+              rounded-t-3xl rounded-b-none
+              /* Desktop: positioned on right, all corners rounded */
               md:bottom-6 md:top-auto md:left-auto md:right-6
               md:max-h-[calc(100vh-3rem)]
-              md:w-96 md:rounded-2xl
-              rounded-t-3xl
+              md:w-96 md:rounded-t-2xl md:rounded-b-2xl
               ${isDarkMode
                 ? 'bg-gray-900/95 text-white border-gray-700'
                 : 'bg-white/95 text-gray-900 border-gray-200'
               }
-              backdrop-blur-[1px] shadow-2xl border-t md:border
+              backdrop-blur-[1px] shadow-2xl border-t md:border overflow-hidden
             `}
           >
             {/* Drag Handle for Mobile */}
-            <div className="md:hidden w-full flex justify-center pt-3 pb-1" onClick={onClose}>
+            <motion.div 
+              className="md:hidden w-full flex justify-center pt-3 pb-1 cursor-grab active:cursor-grabbing touch-none"
+              onPointerDown={(e) => {
+                dragControls.start(e);
+              }}
+            >
               <div className={`w-12 h-1.5 rounded-full ${isDarkMode ? 'bg-gray-700' : 'bg-gray-300'}`} />
-            </div>
+            </motion.div>
 
-            {/* Panel Header */}
+            {/* Panel Header - Fixed at top */}
             <div className={`
-              sticky top-0 z-10 
+              flex-shrink-0
               ${isDarkMode ? 'bg-gray-900/95' : 'bg-white/95'}
-              backdrop-blur-[1px]
             `}>
               {/* Header Content */}
               <div className="flex items-start justify-between px-4 pb-2 pt-1 md:pt-4 gap-3">
@@ -460,7 +548,7 @@ export default function CafeDetailPanel({
                     )}
                     {distance !== null && (
                       <p className="text-sm text-primary-500 font-medium mt-0.5 flex items-start gap-1">
-                        <Icon icon="mdi:walk" className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+                        <Icon icon="mdi:map-marker-distance" className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
                         {formatDistance(distance)} {text.fromYou}
                       </p>
                     )}
@@ -558,20 +646,22 @@ export default function CafeDetailPanel({
             </div>
             </div>
 
-            {/* Photo Gallery */}
-            {cafe.photos && cafe.photos.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.15 }}
-                className="px-4 pt-2 pb-2"
-              >
-                <PhotoGallery photos={cafe.photos} cafeName={cafe.name} />
-              </motion.div>
-            )}
+            {/* Scrollable Content Area */}
+            <div className="flex-1 overflow-y-auto scrollbar-hide">
+              {/* Photo Gallery */}
+              {cafe.photos && cafe.photos.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.15 }}
+                  className="px-4 pt-2 pb-2"
+                >
+                  <PhotoGallery photos={cafe.photos} cafeName={cafe.name} />
+                </motion.div>
+              )}
 
-            {/* Content */}
-            <div className="px-4 pb-4 space-y-3">
+              {/* Content */}
+              <div className="px-4 pb-4 space-y-3">
               {/* Address */}
               <motion.div 
                 custom={0}
@@ -608,6 +698,37 @@ export default function CafeDetailPanel({
                 
                 const displayHours = parsedHours.length > 0 ? parsedHours : (isInstagramActuallyHours ? parseOpeningHours(instagramValue, language) : []);
                 
+                // Get current opening status
+                const hoursData = hours && typeof hours === 'string' ? hours : (isInstagramActuallyHours && typeof instagramValue === 'string' ? instagramValue : '');
+                const status = getCurrentOpeningStatus(hoursData);
+                
+                // Get current day for highlighting
+                const today = new Date();
+                const currentDayIndex = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
+                const dayAbbreviations = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+                const currentDayAbbr = dayAbbreviations[currentDayIndex];
+                
+                // Function to check if entry matches current day
+                const isToday = (originalDays: string) => {
+                  // Handle single day: Mo, Tu, etc.
+                  if (originalDays === currentDayAbbr) return true;
+                  
+                  // Handle range: Mo-Fr
+                  const rangeMatch = originalDays.match(/^([A-Z][a-z])-([A-Z][a-z])$/);
+                  if (rangeMatch) {
+                    const startDay = dayAbbreviations.indexOf(rangeMatch[1]);
+                    const endDay = dayAbbreviations.indexOf(rangeMatch[2]);
+                    if (startDay <= endDay) {
+                      return currentDayIndex >= startDay && currentDayIndex <= endDay;
+                    } else {
+                      // Handle wrap-around like Fr-Mo
+                      return currentDayIndex >= startDay || currentDayIndex <= endDay;
+                    }
+                  }
+                  
+                  return false;
+                };
+                
                 return displayHours.length > 0 ? (
                   <motion.div 
                     custom={1}
@@ -619,6 +740,42 @@ export default function CafeDetailPanel({
                     <div className={`flex items-center gap-2 mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                       <Icon icon="mdi:clock-outline" className="w-5 h-5 flex-shrink-0 text-primary-500" />
                       <span className="font-semibold">{text.openingHours}</span>
+                      {status.isOpen && status.closingSoon && (
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                          isDarkMode 
+                            ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' 
+                            : 'bg-orange-100 text-orange-700 border border-orange-200'
+                        }`}>
+                          {language === 'id' ? `Tutup ${status.closingTime} WIB` : `Closes ${status.closingTime}`}
+                        </span>
+                      )}
+                      {status.isOpen && !status.closingSoon && (
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                          isDarkMode 
+                            ? 'bg-green-500/20 text-green-400 border border-green-500/30' 
+                            : 'bg-green-100 text-green-700 border border-green-200'
+                        }`}>
+                          {language === 'id' ? 'Buka' : 'Open'}
+                        </span>
+                      )}
+                      {!status.isOpen && status.openingTime && (
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                          isDarkMode 
+                            ? 'bg-red-500/20 text-red-400 border border-red-500/30' 
+                            : 'bg-red-100 text-red-700 border border-red-200'
+                        }`}>
+                          {language === 'id' ? `Buka ${status.openingTime} WIB` : `Opens ${status.openingTime}`}
+                        </span>
+                      )}
+                      {!status.isOpen && !status.openingTime && (
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                          isDarkMode 
+                            ? 'bg-red-500/20 text-red-400 border border-red-500/30' 
+                            : 'bg-red-100 text-red-700 border border-red-200'
+                        }`}>
+                          {language === 'id' ? 'Tutup' : 'Closed'}
+                        </span>
+                      )}
                     </div>
                     <div className={`
                       ml-7 rounded-xl overflow-hidden
@@ -627,28 +784,34 @@ export default function CafeDetailPanel({
                         : 'bg-amber-50/50 border border-amber-100'
                       }
                     `}>
-                      {displayHours.map((entry, index) => (
-                        <div 
-                          key={index}
-                          className={`
-                            flex items-center justify-between px-3 py-2
-                            ${index > 0 ? (isDarkMode ? 'border-t border-gray-700' : 'border-t border-amber-100') : ''}
-                          `}
-                        >
-                          <span className={`font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                            {entry.days}
-                          </span>
-                          <span className={`
-                            font-mono text-sm
-                            ${entry.isClosed 
-                              ? (isDarkMode ? 'text-red-400' : 'text-red-600')
-                              : (isDarkMode ? 'text-primary-400' : 'text-primary-600')
-                            }
-                          `}>
-                            {entry.hours}
-                          </span>
-                        </div>
-                      ))}
+                      {displayHours.map((entry, index) => {
+                        const isTodayEntry = isToday(entry.originalDays);
+                        return (
+                          <div 
+                            key={index}
+                            className={`
+                              flex items-center justify-between px-3 py-2 transition-colors
+                              ${index > 0 ? (isDarkMode ? 'border-t border-gray-700' : 'border-t border-amber-100') : ''}
+                              ${isTodayEntry ? (isDarkMode ? 'bg-primary-500/20' : 'bg-primary-100') : ''}
+                            `}
+                          >
+                            <span className={`font-medium ${isTodayEntry ? 'text-primary-500 font-bold' : (isDarkMode ? 'text-gray-300' : 'text-gray-700')}`}>
+                              {entry.days}
+                            </span>
+                            <span className={`
+                              font-mono text-sm
+                              ${entry.isClosed 
+                                ? (isDarkMode ? 'text-red-400' : 'text-red-600')
+                                : isTodayEntry
+                                  ? 'text-primary-600 font-semibold'
+                                  : (isDarkMode ? 'text-primary-400' : 'text-primary-600')
+                              }
+                            `}>
+                              {entry.hours}
+                            </span>
+                          </div>
+                        );
+                      })}
                     </div>
                   </motion.div>
                 ) : null;
@@ -705,7 +868,7 @@ export default function CafeDetailPanel({
                       rel="noopener noreferrer" 
                       className="hover:text-primary-500 transition-colors"
                     >
-                      @{instagramValue!.replace('@', '')}
+                      {instagramValue!.replace('@', '')}
                     </a>
                   </motion.div>
                 ) : null;
@@ -841,16 +1004,18 @@ export default function CafeDetailPanel({
                   </div>
                 </motion.div>
               )}
+              </div>
             </div>
 
-            {/* Action buttons */}
+            {/* Action buttons - Fixed at bottom */}
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
               className={`
-                p-4 border-t space-y-2
-                ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}
+                flex-shrink-0 p-4 border-t
+                md:rounded-b-2xl
+                ${isDarkMode ? 'border-gray-700 bg-gray-900/95' : 'border-gray-200 bg-white/95'}
               `}
             >
               {/* Primary actions */}

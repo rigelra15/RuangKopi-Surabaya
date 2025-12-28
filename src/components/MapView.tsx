@@ -187,10 +187,45 @@ function MapController({
   // Pan to selected cafe when it changes
   useEffect(() => {
     if (selectedCafe) {
-      // Zoom to max level (18) for selected cafe
-      map.flyTo([selectedCafe.lat, selectedCafe.lon], 18, { duration: 1 });
+      const isMobile = window.innerWidth < 768;
+      
+      if (isMobile && showCafeDetail) {
+        // On mobile with bottom sheet open, we need to position the cafe pin 
+        // in the visible area ABOVE the bottom sheet (top ~35% of screen)
+        // 
+        // The bottom sheet covers 65% of the screen from bottom
+        // So we need the marker to appear in the top 35%
+        // To center it in that area, we need it at roughly 15-20% from top
+        
+        const zoom = 18; // Max zoom for detailed view of the cafe
+        
+        // Get the pixel point of the cafe at this zoom
+        const cafePoint = map.project([selectedCafe.lat, selectedCafe.lon], zoom);
+        
+        // We want pin to appear at ~25% from top of screen (below search bar, above bottom sheet)
+        // Map center is at 50%, so offset needed = 50% - 25% = 25%
+        // Search bar is around 10% from top, bottom sheet starts at 35% from top
+        // So visible area is 10-35%, center is at ~22.5% from top
+        // Offset = 50% - 22.5% = 27.5% of window height, using 25% for some margin
+        const offsetPixels = window.innerHeight * 0.25;
+        
+        // Offset the point DOWN (so the map shifts UP, moving the marker UP on screen)
+        const offsetPoint = L.point(cafePoint.x, cafePoint.y + offsetPixels);
+        
+        // Convert back to lat/lng - this is where map center should be
+        const targetLatLng = map.unproject(offsetPoint, zoom);
+        
+        map.flyTo(targetLatLng, zoom, { 
+          duration: 0.8,
+          animate: true 
+        });
+        
+      } else {
+        // Desktop or mobile without detail - center normally at max zoom
+        map.flyTo([selectedCafe.lat, selectedCafe.lon], 18, { duration: 1 });
+      }
     }
-  }, [map, selectedCafe]);
+  }, [map, selectedCafe, showCafeDetail]);
 
   // Sync popup visibility with cafe detail panel
   useEffect(() => {
