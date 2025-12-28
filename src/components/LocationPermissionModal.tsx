@@ -27,7 +27,6 @@ export default function LocationPermissionModal({
       benefits: [
         'Temukan cafe terdekat dari posisi Anda',
         'Lihat jarak ke setiap cafe',
-        'Dapatkan petunjuk arah dengan mudah',
       ],
       privacy: 'Lokasi Anda hanya digunakan secara lokal dan tidak akan disimpan.',
       allow: 'Izinkan Lokasi',
@@ -41,7 +40,6 @@ export default function LocationPermissionModal({
       benefits: [
         'Find cafes nearest to your position',
         'See distance to each cafe',
-        'Get directions easily',
       ],
       privacy: 'Your location is only used locally and will not be stored.',
       allow: 'Allow Location',
@@ -181,7 +179,7 @@ export default function LocationPermissionModal({
             animate="visible"
             exit="exit"
             className={`
-              absolute inset-0 backdrop-blur-sm
+              absolute inset-0 backdrop-blur-[1px]
               ${isDarkMode ? 'bg-black/70' : 'bg-black/50'}
             `}
             onClick={handleLater}
