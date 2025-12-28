@@ -115,24 +115,13 @@ function App() {
     return convertedCafes.filter(cafe => !hiddenCafeIds.has(cafe.id));
   }, [customCafes, hiddenCafeIds]);
 
-  // Filter cafes by search query
-  const searchFilteredCafes = useMemo(() => {
-    if (!searchQuery.trim()) return allCafes;
-    const query = searchQuery.toLowerCase();
-    return allCafes.filter(cafe =>
-      cafe.name.toLowerCase().includes(query) ||
-      cafe.address?.toLowerCase().includes(query) ||
-      cafe.brand?.toLowerCase().includes(query)
-    );
-  }, [allCafes, searchQuery]);
-
-  // Filter cafes by distance
-  const filteredCafes = useMemo(() => {
+  // Filter cafes by distance (for both map and search results)
+  const distanceFilteredCafes = useMemo(() => {
     if (!distanceFilter || !userLocation) {
-      return searchFilteredCafes;
+      return allCafes;
     }
     
-    return searchFilteredCafes.filter(cafe => {
+    return allCafes.filter(cafe => {
       const distance = calculateDistance(
         userLocation[0],
         userLocation[1],
@@ -141,7 +130,18 @@ function App() {
       );
       return distance <= distanceFilter;
     });
-  }, [searchFilteredCafes, distanceFilter, userLocation]);
+  }, [allCafes, distanceFilter, userLocation]);
+
+  // Search filtered cafes (only for search dropdown, not for map)
+  const searchFilteredCafes = useMemo(() => {
+    if (!searchQuery.trim()) return distanceFilteredCafes;
+    const query = searchQuery.toLowerCase();
+    return distanceFilteredCafes.filter(cafe =>
+      cafe.name.toLowerCase().includes(query) ||
+      cafe.address?.toLowerCase().includes(query) ||
+      cafe.brand?.toLowerCase().includes(query)
+    );
+  }, [distanceFilteredCafes, searchQuery]);
 
   const handleToggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
@@ -168,7 +168,7 @@ function App() {
         },
         {
           enableHighAccuracy: true,
-          timeout: 10000,
+          timeout: 20000,
           maximumAge: 60000,
         }
       );
@@ -201,13 +201,11 @@ function App() {
 
   const handleCloseCafeDetail = useCallback(() => {
     setShowCafeDetail(false);
-    // Keep selectedCafe for map positioning, clear after animation
-    setTimeout(() => {
-      if (!showCafeDetail) {
-        setSelectedCafe(null);
-      }
-    }, 300);
-  }, [showCafeDetail]);
+    // Immediately clear selected cafe so marker returns to normal
+    setSelectedCafe(null);
+    // Also reset search query to clear the search box
+    setSearchQuery('');
+  }, []);
 
   return (
     <div className={`h-screen w-screen overflow-hidden ${isDarkMode ? 'dark' : ''}`}>
@@ -216,7 +214,7 @@ function App() {
         <MapView 
           isDarkMode={isDarkMode} 
           userLocation={userLocation}
-          cafes={filteredCafes}
+          cafes={distanceFilteredCafes}
           selectedCafe={selectedCafe}
           onCafeSelect={handleSelectCafe}
           showCafeDetail={showCafeDetail}
@@ -264,11 +262,12 @@ function App() {
           // Reset search query when cleared
           setSearchQuery('');
         }}
-        searchResults={filteredCafes}
+        searchResults={searchFilteredCafes}
         isLoading={isSearching}
         onSelectCafe={handleSelectCafe}
         language={language}
         onAddressFound={handleAddressFound}
+        externalQuery={searchQuery}
       />
 
       {/* Distance Filter - Top Right */}
@@ -326,7 +325,7 @@ function App() {
       />
 
       {/* Cafe count indicator - hidden on mobile (overlaps search), visible on desktop below title */}
-      {filteredCafes.length > 0 && !showCafeDetail && (
+      {distanceFilteredCafes.length > 0 && !showCafeDetail && (
         <div className="hidden sm:block absolute top-20 left-6 z-[1000]">
           <div className={`
             px-3 py-1.5 rounded-full
@@ -338,7 +337,7 @@ function App() {
             text-xs font-medium
           `}>
             <Icon icon="mdi:coffee" className="w-3.5 h-3.5 inline mr-1" />
-            {filteredCafes.length} {language === 'id' ? 'cafe ditemukan' : 'cafes found'}
+            {distanceFilteredCafes.length} {language === 'id' ? 'cafe ditemukan' : 'cafes found'}
             {distanceFilter && userLocation && (
               <span className="text-primary-500 ml-1">
                 ({distanceFilter >= 1 ? `${distanceFilter} km` : `${distanceFilter * 1000} m`})

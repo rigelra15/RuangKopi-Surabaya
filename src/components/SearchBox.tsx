@@ -17,6 +17,7 @@ interface SearchBoxProps {
   onSelectCafe: (cafe: Cafe) => void;
   language: 'id' | 'en';
   onAddressFound?: (lat: number, lon: number, cafes: Cafe[]) => void;
+  externalQuery?: string; // For controlled reset from parent
 }
 
 export default function SearchBox({ 
@@ -27,15 +28,35 @@ export default function SearchBox({
   isLoading,
   onSelectCafe,
   language,
-  onAddressFound
+  onAddressFound,
+  externalQuery = ''
 }: SearchBoxProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [isFocused, setIsFocused] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  const [hasSelectedCafe, setHasSelectedCafe] = useState(false); // Track if user selected a cafe
   const [geocodedLocation, setGeocodedLocation] = useState<GeocodedResult | null>(null);
   const [isSearchingAddress, setIsSearchingAddress] = useState(false);
   const [addressCafes, setAddressCafes] = useState<Cafe[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
+  const prevExternalQueryRef = useRef(externalQuery);
+
+  // Sync with external query (for reset from parent)
+  // Only reset when externalQuery changes from non-empty to empty
+  useEffect(() => {
+    const prevValue = prevExternalQueryRef.current;
+    prevExternalQueryRef.current = externalQuery;
+
+    // Only reset if external query was non-empty before and is now empty
+    // This means parent explicitly cleared it (e.g., on close panel)
+    if (prevValue !== '' && externalQuery === '') {
+      setSearchQuery('');
+      setShowResults(false);
+      setHasSelectedCafe(false);
+      setGeocodedLocation(null);
+      setAddressCafes([]);
+    }
+  }, [externalQuery]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -66,6 +87,11 @@ export default function SearchBox({
 
   // Realtime search with debounce - now supports address search
   useEffect(() => {
+    // If user just selected a cafe, don't search again
+    if (hasSelectedCafe) {
+      return;
+    }
+
     const debounceTimer = setTimeout(async () => {
       if (searchQuery.trim()) {
         // First try regular cafe name search
@@ -105,22 +131,25 @@ export default function SearchBox({
     }, 400); // Slightly longer debounce for address search
 
     return () => clearTimeout(debounceTimer);
-  }, [searchQuery, onSearch]);
+  }, [searchQuery, onSearch, hasSelectedCafe]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
+      setHasSelectedCafe(false); // Allow search on manual submit
       onSearch(searchQuery);
     }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
+    setHasSelectedCafe(false); // Reset flag when user types
   };
 
   const handleSelectCafe = (cafe: Cafe) => {
     setSearchQuery(cafe.name);
     setShowResults(false);
+    setHasSelectedCafe(true); // Set flag to prevent re-searching
     onSelectCafe(cafe);
   };
 
