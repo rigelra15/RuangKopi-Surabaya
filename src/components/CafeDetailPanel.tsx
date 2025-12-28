@@ -471,13 +471,11 @@ export default function CafeDetailPanel({
               fixed z-[1002]
               /* Mobile: bottom sheet with max-height for map visibility */
               bottom-0 left-0 right-0
-              max-h-[65vh] flex flex-col
-              /* Mobile: only top corners rounded, bottom flat against screen edge */
-              rounded-t-3xl rounded-b-none
-              /* Desktop: positioned on right, all corners rounded */
+              max-h-[65vh] overflow-y-auto scrollbar-hide
               md:bottom-6 md:top-auto md:left-auto md:right-6
               md:max-h-[calc(100vh-3rem)]
-              md:w-96 md:rounded-t-2xl md:rounded-b-2xl
+              md:w-96 md:rounded-2xl
+              rounded-t-3xl
               ${isDarkMode
                 ? 'bg-gray-900/95 text-white border-gray-700'
                 : 'bg-white/95 text-gray-900 border-gray-200'

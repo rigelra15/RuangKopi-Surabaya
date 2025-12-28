@@ -882,7 +882,7 @@ export default function AddCafeModal({
                         <ImageUpload
                           images={formData.photos || []}
                           onImagesChange={(urls) => setFormData(prev => ({ ...prev, photos: urls }))}
-                          maxImages={50}
+                          maxImages={5}
                         />
                       </div>
                     </div>
