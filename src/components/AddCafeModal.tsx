@@ -86,11 +86,11 @@ export default function AddCafeModal({
     longitude: language === 'id' ? 'Longitude' : 'Longitude',
     useMyLocation: language === 'id' ? 'Gunakan Lokasi Saya' : 'Use My Location',
     phone: language === 'id' ? 'Nomor Telepon' : 'Phone Number',
-    phonePlaceholder: language === 'id' ? '08123456789' : '+62 812 345 6789',
-    website: language === 'id' ? 'Website' : 'Website',
-    websitePlaceholder: 'https://example.com',
+    phonePlaceholder: language === 'id' ? '812 3456 7890' : '812 3456 7890',
+    website: language === 'id' ? 'Website / Link Menu' : 'Website / Menu Link',
+    websitePlaceholder: language === 'id' ? 'Masukkan link website atau menu' : 'Enter website or menu link',
     instagram: 'Instagram',
-    instagramPlaceholder: '@coffeeshop',
+    instagramPlaceholder: language === 'id' ? 'username' : 'username',
     openingHours: language === 'id' ? 'Jam Buka' : 'Opening Hours',
     openingHoursPlaceholder: language === 'id' ? '08:00 - 22:00' : '8:00 AM - 10:00 PM',
     amenities: language === 'id' ? 'Fasilitas' : 'Amenities',
@@ -385,14 +385,20 @@ export default function AddCafeModal({
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className={labelClass}>{t.phone}</label>
-          <input
-            type="tel"
-            name="phone"
-            value={formData.phone}
-            onChange={handleInputChange}
-            placeholder={t.phonePlaceholder}
-            className={inputClass}
-          />
+          <div className="relative">
+            <span className={`
+              absolute left-4 top-1/2 -translate-y-1/2 text-sm font-medium
+              ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}
+            `}>+62</span>
+            <input
+              type="tel"
+              name="phone"
+              value={formData.phone}
+              onChange={handleInputChange}
+              placeholder={t.phonePlaceholder}
+              className={`${inputClass} pl-12`}
+            />
+          </div>
         </div>
         <div>
           <label className={labelClass}>{t.instagram}</label>
@@ -400,7 +406,11 @@ export default function AddCafeModal({
             type="text"
             name="instagram"
             value={formData.instagram}
-            onChange={handleInputChange}
+            onChange={(e) => {
+              // Remove @ symbol if user tries to input it
+              const value = e.target.value.replace(/@/g, '');
+              setFormData(prev => ({ ...prev, instagram: value }));
+            }}
             placeholder={t.instagramPlaceholder}
             className={inputClass}
           />
@@ -872,7 +882,7 @@ export default function AddCafeModal({
                         <ImageUpload
                           images={formData.photos || []}
                           onImagesChange={(urls) => setFormData(prev => ({ ...prev, photos: urls }))}
-                          maxImages={5}
+                          maxImages={50}
                         />
                       </div>
                     </div>

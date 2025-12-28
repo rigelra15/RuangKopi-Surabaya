@@ -1641,8 +1641,8 @@ function CafeFormModal({
   const [openingHoursData, setOpeningHoursData] = useState<{
     [key: string]: { isOpen: boolean; open: string; close: string };
   }>(() => {
-    // Parse existing opening hours if editing
-    const defaultData = {
+    // Default hours
+    const defaultData: { [key: string]: { isOpen: boolean; open: string; close: string } } = {
       mon: { isOpen: true, open: "08:00", close: "22:00" },
       tue: { isOpen: true, open: "08:00", close: "22:00" },
       wed: { isOpen: true, open: "08:00", close: "22:00" },
@@ -1651,6 +1651,68 @@ function CafeFormModal({
       sat: { isOpen: true, open: "08:00", close: "22:00" },
       sun: { isOpen: true, open: "08:00", close: "22:00" },
     };
+    
+    // Parse existing opening hours if editing
+    if (cafe?.openingHours && typeof cafe.openingHours === 'string') {
+      const osmStr = cafe.openingHours;
+      const dayMap: { [key: string]: string } = {
+        'Mo': 'mon', 'Tu': 'tue', 'We': 'wed', 'Th': 'thu', 'Fr': 'fri', 'Sa': 'sat', 'Su': 'sun'
+      };
+      const dayOrder = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+      
+      // Split by semicolon or comma
+      const parts = osmStr.split(/[;,]/).map(p => p.trim());
+      
+      for (const part of parts) {
+        // Match patterns like "Mo-Fr 08:00-22:00" or "Mo 08:00-22:00" or "Sa off"
+        const rangeMatch = part.match(/^([A-Z][a-z])-([A-Z][a-z])\s+(\d{1,2}:\d{2})-(\d{1,2}:\d{2})$/i);
+        const singleMatch = part.match(/^([A-Z][a-z])\s+(\d{1,2}:\d{2})-(\d{1,2}:\d{2})$/i);
+        const offMatch = part.match(/^([A-Z][a-z])(?:-([A-Z][a-z]))?\s+off$/i);
+        
+        if (rangeMatch) {
+          const startDay = rangeMatch[1];
+          const endDay = rangeMatch[2];
+          const openTime = rangeMatch[3];
+          const closeTime = rangeMatch[4];
+          
+          const startIdx = dayOrder.indexOf(startDay);
+          const endIdx = dayOrder.indexOf(endDay);
+          
+          if (startIdx !== -1 && endIdx !== -1) {
+            for (let i = startIdx; i <= endIdx; i++) {
+              const key = dayMap[dayOrder[i]];
+              if (key) {
+                defaultData[key] = { isOpen: true, open: openTime, close: closeTime };
+              }
+            }
+          }
+        } else if (singleMatch) {
+          const dayAbbr = singleMatch[1];
+          const openTime = singleMatch[2];
+          const closeTime = singleMatch[3];
+          const key = dayMap[dayAbbr];
+          if (key) {
+            defaultData[key] = { isOpen: true, open: openTime, close: closeTime };
+          }
+        } else if (offMatch) {
+          const startDay = offMatch[1];
+          const endDay = offMatch[2] || startDay;
+          
+          const startIdx = dayOrder.indexOf(startDay);
+          const endIdx = dayOrder.indexOf(endDay);
+          
+          if (startIdx !== -1 && endIdx !== -1) {
+            for (let i = startIdx; i <= endIdx; i++) {
+              const key = dayMap[dayOrder[i]];
+              if (key) {
+                defaultData[key] = { ...defaultData[key], isOpen: false };
+              }
+            }
+          }
+        }
+      }
+    }
+    
     return defaultData;
   });
 
@@ -1923,18 +1985,21 @@ function CafeFormModal({
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className={labelClass}>Telepon</label>
-                  <input
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        phone: e.target.value,
-                      }))
-                    }
-                    placeholder="08123456789"
-                    className={inputClass}
-                  />
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-medium text-gray-400">+62</span>
+                    <input
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          phone: e.target.value,
+                        }))
+                      }
+                      placeholder="812 3456 7890"
+                      className={`${inputClass} pl-12`}
+                    />
+                  </div>
                 </div>
                 <div>
                   <label className={labelClass}>Instagram</label>
@@ -1944,17 +2009,18 @@ function CafeFormModal({
                     onChange={(e) =>
                       setFormData((prev) => ({
                         ...prev,
-                        instagram: e.target.value,
+                        // Remove @ symbol if user tries to input it
+                        instagram: e.target.value.replace(/@/g, ''),
                       }))
                     }
-                    placeholder="@coffeeshop"
+                    placeholder="username"
                     className={inputClass}
                   />
                 </div>
               </div>
 
               <div>
-                <label className={labelClass}>Website</label>
+                <label className={labelClass}>Website / Link Menu</label>
                 <input
                   type="url"
                   value={formData.website}
@@ -1964,7 +2030,7 @@ function CafeFormModal({
                       website: e.target.value,
                     }))
                   }
-                  placeholder="https://example.com"
+                  placeholder="Masukkan link website atau menu"
                   className={inputClass}
                 />
               </div>
@@ -2222,6 +2288,11 @@ function CafeFormModal({
                       label: "AC",
                       icon: "mdi:snowflake",
                     },
+                    {
+                      key: "goodForWorking",
+                      label: "Cocok untuk WFC",
+                      icon: "mdi:laptop",
+                    },
                   ].map((item) => (
                     <button
                       key={item.key}
@@ -2278,7 +2349,7 @@ function CafeFormModal({
                   onImagesChange={(photos) =>
                     setFormData((prev) => ({ ...prev, photos }))
                   }
-                  maxImages={5}
+                  maxImages={50}
                   disabled={isSaving}
                 />
               </div>
