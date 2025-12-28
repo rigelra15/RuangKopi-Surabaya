@@ -849,7 +849,7 @@ export default function CafeDetailPanel({
                 <motion.a
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  href={`https://gojek.link/goride?destLatLong=${cafe.lat},${cafe.lon}&destName=${encodeURIComponent(cafe.name)}`}
+                  href={`https://www.gojek.com/gojek-link/?link=gojek://transport/confirm&dropoff_lat=${cafe.lat}&dropoff_lng=${cafe.lon}&dropoff_name=${encodeURIComponent(cafe.name)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className={`
@@ -866,7 +866,7 @@ export default function CafeDetailPanel({
                 <motion.a
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  href={`https://grab.onelink.me/2695613898?af_dp=grab://open?dropOffLatitude=${cafe.lat}&dropOffLongitude=${cafe.lon}&dropOffName=${encodeURIComponent(cafe.name)}`}
+                  href={`https://r.grab.com/open?link=grab://open?screenType=BOOKING&dropOffLatitude=${cafe.lat}&dropOffLongitude=${cafe.lon}&dropOffAddress=${encodeURIComponent(cafe.name)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className={`
