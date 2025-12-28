@@ -38,36 +38,37 @@ export default function PhotoGallery({ photos, cafeName }: PhotoGalleryProps) {
 
   return (
     <>
-      {/* Photo Grid */}
-      <div className="grid grid-cols-3 gap-2">
-        {photos.slice(0, 6).map((photo, index) => (
+      {/* Photo Grid - Landscape layout */}
+      <div className={`
+        ${photos.length === 1 ? 'grid grid-cols-1' : 'grid grid-cols-2 gap-2'}
+      `}>
+        {photos.slice(0, 4).map((photo, index) => (
           <motion.button
             key={photo}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
             onClick={() => {
               setSelectedIndex(index);
               setIsLoading(true);
             }}
             className={`
-              relative aspect-square rounded-xl overflow-hidden bg-gray-800
-              ${index === 0 && photos.length >= 4 ? 'col-span-2 row-span-2' : ''}
-              ${photos.length === 1 ? 'col-span-3' : ''}
-              ${photos.length === 2 ? 'col-span-1' : ''}
+              relative rounded-xl overflow-hidden bg-gray-800 cursor-pointer
+              ${photos.length === 1 ? 'aspect-video' : ''}
+              ${photos.length === 2 ? 'aspect-video' : ''}
+              ${photos.length >= 3 && index === 0 ? 'col-span-2 aspect-video' : ''}
+              ${photos.length >= 3 && index > 0 ? 'aspect-square' : ''}
             `}
           >
             <img
               src={getMediumUrl(photo)}
               alt={`${cafeName} - Foto ${index + 1}`}
-              className="w-full h-full object-cover transition-transform hover:scale-105"
+              className="w-full h-full object-cover"
               loading="lazy"
             />
             
             {/* More photos overlay */}
-            {index === 5 && photos.length > 6 && (
+            {index === 3 && photos.length > 4 && (
               <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
                 <span className="text-white text-lg font-bold">
-                  +{photos.length - 6}
+                  +{photos.length - 4}
                 </span>
               </div>
             )}
