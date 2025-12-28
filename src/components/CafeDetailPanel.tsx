@@ -4,8 +4,10 @@ import { Icon } from '@iconify/react';
 import type { Cafe } from '../services/cafeService';
 import { reverseGeocode } from '../services/cafeService';
 import { isFavorite, toggleFavorite, formatDistance, calculateDistance } from '../services/favoritesService';
+import { getThumbnailUrl } from '../services/imageService';
 import Toast from './Toast';
 import ReportIssueModal from './ReportIssueModal';
+import PhotoGallery from './PhotoGallery';
 
 interface CafeDetailPanelProps {
   cafe: Cafe | null;
@@ -348,27 +350,50 @@ export default function CafeDetailPanel({
                 transition={{ type: 'spring', delay: 0.1 }}
                 className="flex-1 pr-12"
               >
-                <div className="flex items-center gap-2">
-                  <h2 className="text-xl font-bold truncate">{cafe.name}</h2>
-                  {cafe.isCustom && (
-                    <span className={`
-                      inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium
-                      ${isDarkMode 
-                        ? 'bg-primary-500/20 text-primary-400 border border-primary-500/30' 
-                        : 'bg-primary-100 text-primary-700 border border-primary-200'
-                      }
-                    `}>
-                      <Icon icon="mdi:account-plus" className="w-3 h-3" />
-                      Custom
-                    </span>
+                <div className="flex items-center gap-3">
+                  {/* Logo */}
+                  {cafe.logo && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className={`
+                        w-12 h-12 rounded-xl overflow-hidden flex-shrink-0
+                        ${isDarkMode ? 'bg-gray-700' : 'bg-gray-100'}
+                        border-2 ${isDarkMode ? 'border-gray-600' : 'border-gray-200'}
+                      `}
+                    >
+                      <img
+                        src={getThumbnailUrl(cafe.logo)}
+                        alt={`${cafe.name} logo`}
+                        className="w-full h-full object-contain"
+                      />
+                    </motion.div>
                   )}
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-xl font-bold truncate">{cafe.name}</h2>
+                      {cafe.isCustom && (
+                        <span className={`
+                          inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0
+                          ${isDarkMode 
+                            ? 'bg-primary-500/20 text-primary-400 border border-primary-500/30' 
+                            : 'bg-primary-100 text-primary-700 border border-primary-200'
+                          }
+                        `}>
+                          <Icon icon="mdi:account-plus" className="w-3 h-3" />
+                          Custom
+                        </span>
+                      )}
+                    </div>
+                    {distance !== null && (
+                      <p className="text-sm text-primary-500 font-medium mt-0.5 flex items-center gap-1">
+                        <Icon icon="mdi:walk" className="w-4 h-4" />
+                        {formatDistance(distance)} {text.fromYou}
+                      </p>
+                    )}
+                  </div>
                 </div>
-                {distance !== null && (
-                  <p className="text-sm text-primary-500 font-medium mt-0.5 flex items-center gap-1">
-                    <Icon icon="mdi:walk" className="w-4 h-4" />
-                    {formatDistance(distance)} {text.fromYou}
-                  </p>
-                )}
               </motion.div>
               
               <div className="flex items-center gap-2 absolute top-4 right-4">
@@ -423,6 +448,18 @@ export default function CafeDetailPanel({
                 </motion.button>
               </div>
             </div>
+
+            {/* Photo Gallery */}
+            {cafe.photos && cafe.photos.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.15 }}
+                className="px-4 pb-2"
+              >
+                <PhotoGallery photos={cafe.photos} cafeName={cafe.name} />
+              </motion.div>
+            )}
 
             {/* Content */}
             <div className="px-4 pb-4 space-y-3">
