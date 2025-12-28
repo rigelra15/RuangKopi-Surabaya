@@ -228,6 +228,8 @@ export default function CafeDetailPanel({
       orderTransport: 'Pesan Transportasi',
       gojek: 'Gojek',
       grab: 'Grab',
+      permanentlyClosed: 'Tutup Permanen',
+      goodForWorking: 'Cocok WFC',
     },
     en: {
       directions: 'Directions',
@@ -256,6 +258,8 @@ export default function CafeDetailPanel({
       orderTransport: 'Order Transport',
       gojek: 'Gojek',
       grab: 'Grab',
+      permanentlyClosed: 'Permanently Closed',
+      goodForWorking: 'WFC Friendly',
     },
   };
 
@@ -356,10 +360,11 @@ export default function CafeDetailPanel({
             }}
             className={`
               fixed z-[1002]
-              /* Mobile: bottom sheet */
+              /* Mobile: bottom sheet with max-height for map visibility */
               bottom-0 left-0 right-0
+              max-h-[65vh] overflow-y-auto scrollbar-hide
               md:bottom-6 md:top-auto md:left-auto md:right-6
-              md:max-h-[calc(100vh-3rem)] md:overflow-y-auto scrollbar-hide
+              md:max-h-[calc(100vh-3rem)]
               md:w-96 md:rounded-2xl
               rounded-t-3xl
               ${isDarkMode
@@ -432,6 +437,21 @@ export default function CafeDetailPanel({
                         {formatDistance(distance)} {text.fromYou}
                       </p>
                     )}
+                    {/* Status Badges */}
+                    <div className="flex flex-wrap gap-1.5 mt-1">
+                      {(cafe as unknown as { isPermanentlyClosed?: boolean }).isPermanentlyClosed && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-500/20 text-red-400 text-xs font-medium">
+                          <Icon icon="mdi:store-off" className="w-3.5 h-3.5" />
+                          {text.permanentlyClosed}
+                        </span>
+                      )}
+                      {(cafe as unknown as { goodForWorking?: boolean }).goodForWorking && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 text-xs font-medium">
+                          <Icon icon="mdi:laptop" className="w-3.5 h-3.5" />
+                          {text.goodForWorking}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </motion.div>
