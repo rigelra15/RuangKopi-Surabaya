@@ -154,6 +154,40 @@ export function getLargeUrl(url: string): string {
 }
 
 /**
+ * Get original URL without any transformations
+ * Returns the original uploaded image without crop, resize, or quality changes
+ */
+export function getOriginalUrl(url: string): string {
+  // If not a Cloudinary URL, return as is
+  if (!url || !url.includes('cloudinary.com')) {
+    return url;
+  }
+  
+  // Remove any existing transformations from the URL
+  // Cloudinary URL format: https://res.cloudinary.com/CLOUD_NAME/image/upload/TRANSFORMS/PUBLIC_ID
+  // We want: https://res.cloudinary.com/CLOUD_NAME/image/upload/PUBLIC_ID
+  
+  // Check if URL has transformations (anything between /upload/ and the next /)
+  const uploadIndex = url.indexOf('/upload/');
+  if (uploadIndex === -1) return url;
+  
+  const afterUpload = url.substring(uploadIndex + 8); // 8 = length of '/upload/'
+  const nextSlashIndex = afterUpload.indexOf('/');
+  
+  // If there's content between /upload/ and next /, it might be transformations
+  if (nextSlashIndex > 0) {
+    const potentialTransform = afterUpload.substring(0, nextSlashIndex);
+    // Check if it looks like a transformation (contains common transform patterns)
+    if (potentialTransform.includes('_') || potentialTransform.includes(',')) {
+      // Remove the transformation part
+      return url.substring(0, uploadIndex + 8) + afterUpload.substring(nextSlashIndex + 1);
+    }
+  }
+  
+  return url;
+}
+
+/**
  * Get delete URL for Cloudinary image (requires API secret - should be done server-side)
  * Note: For security, deletion should be handled by backend
  * @param _publicId - The public ID of the image to delete (unused in frontend, needed by backend)

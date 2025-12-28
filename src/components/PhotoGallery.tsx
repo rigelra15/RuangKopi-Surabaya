@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Icon } from '@iconify/react';
-import { getMediumUrl, getLargeUrl } from '../services/imageService';
+import { getMediumUrl, getOriginalUrl } from '../services/imageService';
 
 interface PhotoGalleryProps {
   photos: string[];
@@ -138,7 +138,7 @@ export default function PhotoGallery({ photos, cafeName }: PhotoGalleryProps) {
               )}
 
               <img
-                src={getLargeUrl(photos[selectedIndex])}
+                src={getOriginalUrl(photos[selectedIndex])}
                 alt={`${cafeName} - Foto ${selectedIndex + 1}`}
                 className="max-w-full max-h-[90vh] object-contain rounded-lg"
                 onLoad={() => setIsLoading(false)}
