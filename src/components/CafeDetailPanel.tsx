@@ -127,14 +127,14 @@ function parseOpeningHours(hours: unknown, language: 'id' | 'en'): Array<{days: 
   }
 
   const dayMappings: Record<string, { id: string; en: string }> = {
-    'Mo': { id: 'Sen', en: 'Mon' },
-    'Tu': { id: 'Sel', en: 'Tue' },
-    'We': { id: 'Rab', en: 'Wed' },
-    'Th': { id: 'Kam', en: 'Thu' },
-    'Fr': { id: 'Jum', en: 'Fri' },
-    'Sa': { id: 'Sab', en: 'Sat' },
-    'Su': { id: 'Min', en: 'Sun' },
-    'PH': { id: 'Libur', en: 'Holidays' },
+    'Mo': { id: 'Senin', en: 'Monday' },
+    'Tu': { id: 'Selasa', en: 'Tuesday' },
+    'We': { id: 'Rabu', en: 'Wednesday' },
+    'Th': { id: 'Kamis', en: 'Thursday' },
+    'Fr': { id: 'Jumat', en: 'Friday' },
+    'Sa': { id: 'Sabtu', en: 'Saturday' },
+    'Su': { id: 'Minggu', en: 'Sunday' },
+    'PH': { id: 'Hari Libur', en: 'Holidays' },
   };
 
   const closedText = language === 'id' ? 'Tutup' : 'Closed';
@@ -471,11 +471,13 @@ export default function CafeDetailPanel({
               fixed z-[1002]
               /* Mobile: bottom sheet with max-height for map visibility */
               bottom-0 left-0 right-0
-              max-h-[65vh] overflow-y-auto scrollbar-hide
+              max-h-[65vh] flex flex-col
+              /* Mobile: only top corners rounded, bottom flat against screen edge */
+              rounded-t-3xl
+              /* Desktop: positioned on right, all corners rounded */
               md:bottom-6 md:top-auto md:left-auto md:right-6
               md:max-h-[calc(100vh-3rem)]
-              md:w-96 md:rounded-2xl
-              rounded-t-3xl
+              md:w-96 md:rounded-t-2xl md:rounded-b-2xl
               ${isDarkMode
                 ? 'bg-gray-900/95 text-white border-gray-700'
                 : 'bg-white/95 text-gray-900 border-gray-200'
@@ -556,12 +558,6 @@ export default function CafeDetailPanel({
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-500/20 text-red-400 text-xs font-medium">
                           <Icon icon="mdi:store-off" className="w-3.5 h-3.5" />
                           {text.permanentlyClosed}
-                        </span>
-                      )}
-                      {(cafe as unknown as { goodForWorking?: boolean }).goodForWorking && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 text-xs font-medium">
-                          <Icon icon="mdi:laptop" className="w-3.5 h-3.5" />
-                          {text.goodForWorking}
                         </span>
                       )}
                     </div>
@@ -825,8 +821,34 @@ export default function CafeDetailPanel({
                   className={`flex items-center gap-2 text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}
                 >
                   <Icon icon="mdi:phone" className="w-5 h-5 flex-shrink-0 text-primary-500" />
-                  <a href={`tel:${cafe.phone}`} className="hover:text-primary-500 transition-colors">
-                    {cafe.phone}
+                  <a 
+                    href={`tel:${cafe.phone}`} 
+                    className={`
+                      hover:text-primary-500 transition-colors underline decoration-dotted underline-offset-2
+                      ${isDarkMode ? 'text-primary-400' : 'text-primary-600'}
+                    `}
+                  >
+                    {(() => {
+                      // Format phone number with +62 and dashes
+                      let phone = cafe.phone.replace(/\D/g, ''); // Remove non-digits
+                      
+                      // Handle Indonesian numbers
+                      if (phone.startsWith('62')) {
+                        phone = phone.substring(2);
+                      } else if (phone.startsWith('0')) {
+                        phone = phone.substring(1);
+                      }
+                      
+                      // Format: +62 812-3456-7890
+                      if (phone.length >= 9) {
+                        const part1 = phone.substring(0, 3);
+                        const part2 = phone.substring(3, 7);
+                        const part3 = phone.substring(7);
+                        return `+62 ${part1}-${part2}-${part3}`;
+                      }
+                      
+                      return cafe.phone;
+                    })()}
                   </a>
                 </motion.div>
               )}
@@ -864,7 +886,10 @@ export default function CafeDetailPanel({
                       href={`https://instagram.com/${instagramValue!.replace('@', '')}`}
                       target="_blank" 
                       rel="noopener noreferrer" 
-                      className="hover:text-primary-500 transition-colors"
+                      className={`
+                        hover:text-primary-500 transition-colors underline decoration-dotted underline-offset-2
+                        ${isDarkMode ? 'text-primary-400' : 'text-primary-600'}
+                      `}
                     >
                       {instagramValue!.replace('@', '')}
                     </a>
@@ -957,6 +982,20 @@ export default function CafeDetailPanel({
                       `}>
                         <Icon icon="mdi:snowflake" className="w-3.5 h-3.5" />
                         {text.airConditioning}
+                      </div>
+                    )}
+
+                    {/* Good for Working */}
+                    {(cafe as unknown as { goodForWorking?: boolean }).goodForWorking && (
+                      <div className={`
+                        inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium
+                        ${isDarkMode 
+                          ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' 
+                          : 'bg-orange-100 text-orange-700 border border-orange-200'
+                        }
+                      `}>
+                        <Icon icon="mdi:laptop" className="w-3.5 h-3.5" />
+                        {text.goodForWorking}
                       </div>
                     )}
 
