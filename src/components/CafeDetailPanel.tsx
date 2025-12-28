@@ -1040,8 +1040,11 @@ export default function CafeDetailPanel({
                     `}
                   >
                     {(() => {
+                      // Ensure phone is a string
+                      const phoneStr = typeof cafe.phone === 'string' ? cafe.phone : String(cafe.phone);
+                      
                       // Format phone number with +62 and dashes
-                      let phone = cafe.phone.replace(/\D/g, ''); // Remove non-digits
+                      let phone = phoneStr.replace(/\D/g, ''); // Remove non-digits
                       
                       // Handle Indonesian numbers
                       if (phone.startsWith('62')) {
@@ -1058,7 +1061,7 @@ export default function CafeDetailPanel({
                         return `+62 ${part1}-${part2}-${part3}`;
                       }
                       
-                      return cafe.phone;
+                      return phoneStr;
                     })()}
                   </a>
                 </motion.div>
