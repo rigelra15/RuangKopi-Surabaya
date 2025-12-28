@@ -101,6 +101,14 @@ export default function CafeDetailPanel({
   
   // Report modal state
   const [showReportModal, setShowReportModal] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile(); // Initial check
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
   
   // Sync favorite status when cafe changes
   useEffect(() => {
@@ -333,10 +341,19 @@ export default function CafeDetailPanel({
           
           {/* Panel */}
           <motion.div
-            variants={typeof window !== 'undefined' && window.innerWidth >= 768 ? desktopPanelVariants : panelVariants}
+            variants={!isMobile ? desktopPanelVariants : panelVariants}
             initial="hidden"
             animate="visible"
             exit="exit"
+            drag={isMobile ? 'y' : false}
+            dragConstraints={{ top: 0, bottom: 0 }}
+            dragElastic={{ top: 0, bottom: 0.2 }}
+            onDragEnd={(_e, info) => {
+              // Close if dragged down more than 100px or flicked down fast
+              if (info.offset.y > 100 || info.velocity.y > 200) {
+                onClose();
+              }
+            }}
             className={`
               fixed z-[1002]
               /* Mobile: bottom sheet */
@@ -349,23 +366,28 @@ export default function CafeDetailPanel({
                 ? 'bg-gray-900/95 text-white border-gray-700'
                 : 'bg-white/95 text-gray-900 border-gray-200'
               }
-              backdrop-blur-xl border shadow-2xl
-              overflow-hidden
+              backdrop-blur-xl shadow-2xl border-t md:border
             `}
           >
-            {/* Drag handle (mobile) */}
-            <div className="md:hidden flex justify-center pt-3 pb-1">
-              <div className={`w-12 h-1.5 rounded-full ${isDarkMode ? 'bg-gray-600' : 'bg-gray-300'}`} />
+            {/* Drag Handle for Mobile */}
+            <div className="md:hidden w-full flex justify-center pt-3 pb-1" onClick={onClose}>
+              <div className={`w-12 h-1.5 rounded-full ${isDarkMode ? 'bg-gray-700' : 'bg-gray-300'}`} />
             </div>
 
-            {/* Header with close and favorite buttons */}
-            <div className="flex items-start justify-between p-4 pb-2 gap-3">
-              <motion.div 
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ type: 'spring', delay: 0.1 }}
-                className="flex-1 min-w-0"
-              >
+            {/* Panel Header */}
+            <div className={`
+              sticky top-0 z-10 
+              ${isDarkMode ? 'bg-gray-900/95' : 'bg-white/95'}
+              backdrop-blur-xl
+            `}>
+              {/* Header Content */}
+              <div className="flex items-start justify-between px-4 pb-2 pt-1 md:pt-4 gap-3">
+                <motion.div 
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ type: 'spring', delay: 0.1 }}
+                  className="flex-1 min-w-0"
+                >
                 <div className="flex items-center gap-3">
                   {/* Logo */}
                   {cafe.logo && (
@@ -416,6 +438,26 @@ export default function CafeDetailPanel({
               
               {/* Buttons - now part of flex layout, not absolute */}
               <div className="flex items-center gap-2 flex-shrink-0">
+                {/* Report Issue button */}
+                <motion.button
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: 'spring', delay: 0.1 }}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => setShowReportModal(true)}
+                  className={`
+                    p-2 rounded-full transition-colors
+                    ${isDarkMode 
+                      ? 'bg-gray-700 text-gray-400 hover:text-white hover:bg-gray-600' 
+                      : 'bg-gray-100 text-gray-500 hover:text-gray-900 hover:bg-gray-200'
+                    }
+                  `}
+                  aria-label={text.reportIssue}
+                >
+                  <Icon icon="mdi:flag-outline" className="w-5 h-5" />
+                </motion.button>
+
                 {/* Favorite button */}
                 <motion.button
                   initial={{ scale: 0 }}
@@ -446,7 +488,7 @@ export default function CafeDetailPanel({
                   </motion.div>
                 </motion.button>
                 
-                {/* Close button */}
+                {/* Close button - Only visible on desktop/tablet */}
                 <motion.button
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
@@ -455,17 +497,18 @@ export default function CafeDetailPanel({
                   whileTap={{ scale: 0.9 }}
                   onClick={onClose}
                   className={`
+                    hidden md:flex
                     p-2 rounded-full transition-colors
-                    ${isDarkMode
-                      ? 'bg-gray-700 hover:bg-gray-600 text-gray-300'
-                      : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
-                    }
+                    ${isDarkMode 
+                      ? 'bg-gray-700 text-gray-400 hover:bg-gray-600 hover:text-white' 
+                      : 'bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-900'}
                   `}
-                  aria-label="Close"
+                  aria-label="Close details"
                 >
                   <Icon icon="mdi:close" className="w-5 h-5" />
                 </motion.button>
               </div>
+            </div>
             </div>
 
             {/* Photo Gallery */}
@@ -609,7 +652,7 @@ export default function CafeDetailPanel({
               )}
 
               {/* Amenities badges - Show if any amenity exists */}
-              {(cafe.hasWifi || cafe.hasOutdoorSeating || cafe.hasTakeaway || cafe.smokingPolicy || cafe.hasAirConditioning || cafe.brand) && (
+              {(cafe.hasWifi || cafe.hasOutdoorSeating || cafe.hasTakeaway || cafe.hasAirConditioning || (cafe.smokingPolicy && typeof cafe.smokingPolicy === 'string' && ['yes', 'no', 'outside', 'separated'].includes(cafe.smokingPolicy.toLowerCase()))) && (
                 <motion.div
                   custom={4}
                   variants={itemVariants}
@@ -746,7 +789,7 @@ export default function CafeDetailPanel({
                   className="
                     flex items-center justify-center gap-2 py-3 px-4 rounded-xl
                     bg-primary-500 hover:bg-primary-600 text-white
-                    font-medium transition-colors shadow-lg shadow-primary-500/25
+                    font-medium transition-colors
                   "
                 >
                   <Icon icon="mdi:directions" className="w-5 h-5" />
@@ -824,61 +867,10 @@ export default function CafeDetailPanel({
                   </motion.a>
                 )}
 
-                {/* Report issue button */}
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => setShowReportModal(true)}
-                  className={`
-                    ${cafe.menuUrl ? '' : 'flex-1'} flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl
-                    text-sm font-medium transition-colors
-                    ${isDarkMode
-                      ? 'bg-gray-800 hover:bg-gray-700 text-gray-400'
-                      : 'bg-gray-50 hover:bg-gray-100 text-gray-500'
-                    }
-                  `}
-                >
-                  <Icon icon="mdi:flag-outline" className="w-4 h-4" />
-                  {text.reportIssue}
-                </motion.button>
+
               </div>
 
-              {/* Ride-hailing apps */}
-              <div className="flex gap-2 pt-2">
-                {/* Gojek button */}
-                <motion.a
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  href={`https://www.gojek.com/gojek-link/?link=gojek://transport/confirm&dropoff_lat=${cafe.lat}&dropoff_lng=${cafe.lon}&dropoff_name=${encodeURIComponent(cafe.name)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`
-                    flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl
-                    text-sm font-medium transition-colors
-                    bg-[#00AA13] hover:bg-[#009910] text-white
-                  `}
-                >
-                  <Icon icon="simple-icons:gojek" className="w-4 h-4" />
-                  {text.gojek}
-                </motion.a>
 
-                {/* Grab button */}
-                <motion.a
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  href={`https://r.grab.com/open?link=grab://open?screenType=BOOKING&dropOffLatitude=${cafe.lat}&dropOffLongitude=${cafe.lon}&dropOffAddress=${encodeURIComponent(cafe.name)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`
-                    flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl
-                    text-sm font-medium transition-colors
-                    bg-[#00B14F] hover:bg-[#009943] text-white
-                  `}
-                >
-                  <Icon icon="simple-icons:grab" className="w-4 h-4" />
-                  {text.grab}
-                </motion.a>
-              </div>
             </motion.div>
 
             {/* Safe area padding for mobile */}

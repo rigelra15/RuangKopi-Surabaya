@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Icon } from '@iconify/react';
 import { submitIssueReport, type IssueReportData } from '../services/customCafeService';
@@ -116,6 +116,21 @@ export default function ReportIssueModal({
     }
   `;
 
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    // Check initially
+    checkMobile();
+    
+    // Add listener
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -123,7 +138,7 @@ export default function ReportIssueModal({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[2000] flex items-center justify-center p-4"
+          className="fixed inset-0 z-[2000] flex items-end md:items-center justify-center md:p-4"
         >
           {/* Backdrop */}
           <motion.div
@@ -133,19 +148,37 @@ export default function ReportIssueModal({
 
           {/* Modal */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            initial={isMobile ? { y: "100%" } : { opacity: 0, scale: 0.9, y: 20 }}
+            animate={isMobile ? { y: 0 } : { opacity: 1, scale: 1, y: 0 }}
+            exit={isMobile ? { y: "100%" } : { opacity: 0, scale: 0.9, y: 20 }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            drag={isMobile ? 'y' : false}
+            dragConstraints={{ top: 0, bottom: 0 }}
+            dragElastic={{ top: 0, bottom: 0.2 }}
+            onDragEnd={(_e, info) => {
+              if (info.offset.y > 100 || info.velocity.y > 200) {
+                onClose();
+              }
+            }}
             className={`
-              relative w-full max-w-lg max-h-[90vh] overflow-hidden
-              rounded-3xl shadow-2xl
+              relative w-full max-w-lg 
+              max-h-[90vh] md:max-h-[85vh] 
+              flex flex-col
+              rounded-t-3xl md:rounded-3xl 
+              shadow-2xl
               ${isDarkMode ? 'bg-gray-900' : 'bg-white'}
             `}
           >
+            {/* Drag Handle (Mobile) */}
+            <div className="md:hidden w-full flex justify-center pt-3 pb-1" onClick={onClose}>
+              <div className={`w-12 h-1.5 rounded-full ${isDarkMode ? 'bg-gray-700' : 'bg-gray-300'}`} />
+            </div>
+
             {/* Header */}
             <div className={`
-              sticky top-0 z-10 px-6 py-4 border-b
-              ${isDarkMode ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'}
+              px-6 py-4 flex-shrink-0
+              ${isDarkMode ? 'border-gray-800' : 'border-gray-200'}
+              ${!isMobile && 'border-b'}
             `}>
               <div className="flex items-center justify-between">
                 <div>
@@ -156,9 +189,11 @@ export default function ReportIssueModal({
                     {cafeName}
                   </p>
                 </div>
+                {/* Close button - Only visible on desktop/tablet */}
                 <button
                   onClick={onClose}
                   className={`
+                    hidden md:block
                     p-2 rounded-xl transition-colors
                     ${isDarkMode ? 'hover:bg-gray-800 text-gray-400' : 'hover:bg-gray-100 text-gray-500'}
                   `}
@@ -168,8 +203,8 @@ export default function ReportIssueModal({
               </div>
             </div>
 
-            {/* Content */}
-            <div className="p-6 overflow-y-auto max-h-[60vh]">
+            {/* Content - Scrollable */}
+            <div className="p-6 overflow-y-auto flex-1 min-h-0">
               {isSuccess ? (
                 <div className="text-center py-8">
                   <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -243,8 +278,10 @@ export default function ReportIssueModal({
             {/* Footer */}
             {!isSuccess && (
               <div className={`
+                flex-shrink-0
                 sticky bottom-0 px-6 py-4 border-t flex gap-3
                 ${isDarkMode ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'}
+                pb-safe-area md:pb-4 // Safe area for iPhone home bar
               `}>
                 <button
                   onClick={onClose}
