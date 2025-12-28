@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Icon } from '@iconify/react';
 import { addCustomCafe, type CustomCafeFormData } from '../services/customCafeService';
 import { reverseGeocode } from '../services/cafeService';
+import ImageUpload from './ImageUpload';
+import LogoUpload from './LogoUpload';
 
 interface AddCafeModalProps {
   isOpen: boolean;
@@ -59,6 +61,8 @@ export default function AddCafeModal({
     goodForWorking: false,
     priceRange: 'medium',
     description: '',
+    logo: undefined,
+    photos: [],
   });
 
   // Translations
@@ -110,8 +114,8 @@ export default function AddCafeModal({
     submit: language === 'id' ? 'Kirim' : 'Submit',
     submitting: language === 'id' ? 'Mengirim...' : 'Submitting...',
     success: language === 'id' 
-      ? 'Berhasil! Tempat kopi telah ditambahkan.' 
-      : 'Success! Coffee place has been added.',
+      ? 'Berhasil dikirim! Tempat kopi akan ditinjau oleh admin terlebih dahulu sebelum ditampilkan di peta.' 
+      : 'Submitted! The coffee place will be reviewed by admin before appearing on the map.',
     error: language === 'id' 
       ? 'Gagal menambahkan. Silakan coba lagi.' 
       : 'Failed to add. Please try again.',
@@ -129,6 +133,11 @@ export default function AddCafeModal({
     closed: language === 'id' ? 'Tutup' : 'Closed',
     open: language === 'id' ? 'Buka' : 'Open',
     applyToAll: language === 'id' ? 'Terapkan ke semua hari' : 'Apply to all days',
+    logo: language === 'id' ? 'Logo Cafe' : 'Cafe Logo',
+    logoHint: language === 'id' ? 'Upload logo cafe (opsional)' : 'Upload cafe logo (optional)',
+    photos: language === 'id' ? 'Foto-foto' : 'Photos',
+    photosHint: language === 'id' ? 'Tambahkan foto cafe (opsional)' : 'Add cafe photos (optional)',
+    step4: language === 'id' ? 'Media' : 'Media',
   };
 
   // Reset form when modal opens
@@ -152,6 +161,8 @@ export default function AddCafeModal({
         goodForWorking: false,
         priceRange: 'medium',
         description: '',
+        logo: undefined,
+        photos: [],
       });
       setOpeningHoursData({
         mon: { isOpen: true, open: '08:00', close: '22:00' },
@@ -263,6 +274,7 @@ export default function AddCafeModal({
       const dataToSubmit = {
         ...formData,
         openingHours: openingHoursFormatted,
+        status: 'pending', // New submissions need admin approval
       };
       
       await addCustomCafe(dataToSubmit);
@@ -788,7 +800,7 @@ export default function AddCafeModal({
 
               {/* Step indicators */}
               <div className="flex items-center gap-2 mt-4">
-                {[1, 2, 3].map(step => (
+                {[1, 2, 3, 4].map(step => (
                   <div
                     key={step}
                     className={`
@@ -811,6 +823,9 @@ export default function AddCafeModal({
                 <span className={currentStep >= 3 ? 'text-primary-500 font-medium' : isDarkMode ? 'text-gray-500' : 'text-gray-400'}>
                   {t.step3}
                 </span>
+                <span className={currentStep >= 4 ? 'text-primary-500 font-medium' : isDarkMode ? 'text-gray-500' : 'text-gray-400'}>
+                  {t.step4}
+                </span>
               </div>
             </div>
 
@@ -828,6 +843,38 @@ export default function AddCafeModal({
                   {currentStep === 1 && renderStep1()}
                   {currentStep === 2 && renderStep2()}
                   {currentStep === 3 && renderStep3()}
+                  {currentStep === 4 && (
+                    <div className="space-y-6">
+                      {/* Logo Upload */}
+                      <div>
+                        <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                          {t.logo}
+                        </label>
+                        <p className={`text-xs mb-2 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                          {t.logoHint}
+                        </p>
+                        <LogoUpload
+                          logo={formData.logo || null}
+                          onLogoChange={(url) => setFormData(prev => ({ ...prev, logo: url || undefined }))}
+                        />
+                      </div>
+
+                      {/* Photos Upload */}
+                      <div>
+                        <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                          {t.photos}
+                        </label>
+                        <p className={`text-xs mb-2 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                          {t.photosHint}
+                        </p>
+                        <ImageUpload
+                          images={formData.photos || []}
+                          onImagesChange={(urls) => setFormData(prev => ({ ...prev, photos: urls }))}
+                          maxImages={5}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </>
               )}
 
