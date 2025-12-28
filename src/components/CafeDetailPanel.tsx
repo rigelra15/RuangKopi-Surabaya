@@ -800,7 +800,7 @@ export default function CafeDetailPanel({
               `}
             >
               {/* Primary actions */}
-              <div className="grid grid-cols-2 gap-2">
+              <div className={`grid gap-2 ${cafe.website || cafe.phone ? 'grid-cols-2' : 'grid-cols-1'}`}>
                 {/* Directions button */}
                 <motion.button
                   whileHover={{ scale: 1.02 }}
@@ -816,8 +816,8 @@ export default function CafeDetailPanel({
                   {text.directions}
                 </motion.button>
 
-                {/* Website or call button */}
-                {cafe.website ? (
+                {/* Website or call button - only show if exists */}
+                {cafe.website && (
                   <motion.a
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
@@ -836,7 +836,9 @@ export default function CafeDetailPanel({
                     <Icon icon="mdi:web" className="w-5 h-5" />
                     {text.website}
                   </motion.a>
-                ) : cafe.phone ? (
+                )}
+                
+                {!cafe.website && cafe.phone && (
                   <motion.a
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
@@ -853,13 +855,6 @@ export default function CafeDetailPanel({
                     <Icon icon="mdi:phone" className="w-5 h-5" />
                     {text.call}
                   </motion.a>
-                ) : (
-                  <div className={`
-                    flex items-center justify-center py-3 px-4 rounded-xl
-                    ${isDarkMode ? 'bg-gray-800 text-gray-500' : 'bg-gray-50 text-gray-400'}
-                  `}>
-                    <span className="text-sm">—</span>
-                  </div>
                 )}
               </div>
 
