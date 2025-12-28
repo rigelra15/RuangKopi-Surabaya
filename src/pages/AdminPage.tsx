@@ -277,12 +277,10 @@ export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState("");
   const [passwordError, setPasswordError] = useState("");
-  const [activeTab, setActiveTab] = useState<"custom" | "overpass" | "reports">("custom");
+  const [activeTab, setActiveTab] = useState<"custom" | "reports">("custom");
   const [cafes, setCafes] = useState<CustomCafe[]>([]);
-  const [overpassCafes, setOverpassCafes] = useState<Cafe[]>([]);
   const [cafeOverrides, setCafeOverrides] = useState<Record<string, CafeOverrideData>>({});
   const [issueReports, setIssueReports] = useState<IssueReportData[]>([]);
-  const [overpassCafeCount, setOverpassCafeCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [editingCafe, setEditingCafe] = useState<CustomCafe | null>(null);
   const [editingOverpassCafe, setEditingOverpassCafe] = useState<Cafe | null>(null);
@@ -293,6 +291,9 @@ export default function AdminPage() {
     type: "success" | "error";
   } | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
   const [showMigrationModal, setShowMigrationModal] = useState(false);
   const [migrationProgress, setMigrationProgress] = useState<{
     status: 'idle' | 'fetching' | 'geocoding' | 'saving' | 'done' | 'error';
@@ -313,12 +314,52 @@ export default function AdminPage() {
   useEffect(() => {
     if (isAuthenticated) {
       loadCafes();
-      loadOverpassCafes();
       loadOverrides();
       loadReports();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated]);
+
+  // Filtered and sorted cafes
+  const filteredAndSortedCafes = useMemo(() => {
+    let result = cafes;
+
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(
+        (cafe) =>
+          cafe.name.toLowerCase().includes(query) ||
+          cafe.address?.toLowerCase().includes(query) ||
+          String(cafe.phone || '').toLowerCase().includes(query) ||
+          String(cafe.instagram || '').toLowerCase().includes(query)
+      );
+    }
+
+    // Sort alphabetically
+    result = [...result].sort((a, b) => {
+      const nameA = a.name.toLowerCase();
+      const nameB = b.name.toLowerCase();
+      return sortOrder === 'asc'
+        ? nameA.localeCompare(nameB)
+        : nameB.localeCompare(nameA);
+    });
+
+    return result;
+  }, [cafes, searchQuery, sortOrder]);
+
+  // Pagination
+  const totalPages = Math.ceil(filteredAndSortedCafes.length / itemsPerPage);
+  const paginatedCafes = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    return filteredAndSortedCafes.slice(start, end);
+  }, [filteredAndSortedCafes, currentPage]);
+
+  // Reset to page 1 when search or sort changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, sortOrder]);
 
   const loadCafes = async () => {
     setIsLoading(true);
@@ -333,15 +374,7 @@ export default function AdminPage() {
     }
   };
 
-  const loadOverpassCafes = async () => {
-    try {
-      const cafesData = await searchCafes("");
-      setOverpassCafes(cafesData);
-      setOverpassCafeCount(cafesData.length);
-    } catch (error) {
-      console.error("Error loading overpass cafes:", error);
-    }
-  };
+  // Removed loadOverpassCafes function
 
   const loadOverrides = async () => {
     try {
@@ -361,16 +394,6 @@ export default function AdminPage() {
     }
   };
 
-  // Filter overpass cafes by search
-  const filteredOverpassCafes = useMemo(() => {
-    if (!searchQuery.trim()) return overpassCafes;
-    const query = searchQuery.toLowerCase();
-    return overpassCafes.filter(
-      (cafe) =>
-        cafe.name.toLowerCase().includes(query) ||
-        cafe.address?.toLowerCase().includes(query)
-    );
-  }, [overpassCafes, searchQuery]);
 
   // Handle override save
   const handleSaveOverride = async (
@@ -675,20 +698,7 @@ export default function AdminPage() {
       {/* Main content */}
       <main className="max-w-7xl mx-auto px-4 py-8">
         {/* Stats cards */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-          <div className="bg-gray-800 rounded-xl p-4 border border-gray-700">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
-                <Icon icon="mdi:database" className="w-5 h-5 text-blue-400" />
-              </div>
-              <div>
-                <p className="text-xl font-bold text-white">
-                  {overpassCafeCount}
-                </p>
-                <p className="text-gray-400 text-xs">Overpass API</p>
-              </div>
-            </div>
-          </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-gray-800 rounded-xl p-4 border border-gray-700">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-primary-500/20 rounded-lg flex items-center justify-center">
@@ -696,7 +706,7 @@ export default function AdminPage() {
               </div>
               <div>
                 <p className="text-xl font-bold text-white">{cafes.length}</p>
-                <p className="text-gray-400 text-xs">Custom Cafe</p>
+                <p className="text-gray-400 text-xs">Total Cafe</p>
               </div>
             </div>
           </div>
@@ -732,13 +742,13 @@ export default function AdminPage() {
           <div className="bg-gray-800 rounded-xl p-4 border border-gray-700">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
-                <Icon icon="mdi:sigma" className="w-5 h-5 text-green-400" />
+                <Icon icon="mdi:eye-off" className="w-5 h-5 text-green-400" />
               </div>
               <div>
                 <p className="text-xl font-bold text-white">
-                  {overpassCafeCount + cafes.length}
+                  {Object.values(cafeOverrides).filter(o => o.isHidden).length}
                 </p>
-                <p className="text-gray-400 text-xs">Total Cafe</p>
+                <p className="text-gray-400 text-xs">Tersembunyi</p>
               </div>
             </div>
           </div>
@@ -755,18 +765,7 @@ export default function AdminPage() {
             }`}
           >
             <Icon icon="mdi:coffee" className="w-5 h-5" />
-            Custom Cafe ({cafes.length})
-          </button>
-          <button
-            onClick={() => setActiveTab("overpass")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
-              activeTab === "overpass"
-                ? "bg-primary-500 text-white"
-                : "bg-gray-800 text-gray-400 hover:bg-gray-700"
-            }`}
-          >
-            <Icon icon="mdi:database" className="w-5 h-5" />
-            Overpass API ({overpassCafeCount})
+            Daftar Cafe ({filteredAndSortedCafes.length})
           </button>
           <button
             onClick={() => setActiveTab("reports")}
@@ -785,12 +784,52 @@ export default function AdminPage() {
         {activeTab === "custom" && (
           <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
             <div className="p-6 border-b border-gray-700">
-              <h2 className="text-lg font-bold text-white">
-                Daftar Custom Cafe
-              </h2>
-              <p className="text-gray-400 text-sm mt-1">
-                Kelola cafe yang ditambahkan pengguna
-              </p>
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                  <h2 className="text-lg font-bold text-white">
+                    Daftar Cafe
+                  </h2>
+                  <p className="text-gray-400 text-sm mt-1">
+                    {filteredAndSortedCafes.length} cafe ditemukan
+                  </p>
+                </div>
+                
+                {/* Search and Sort Controls */}
+                <div className="flex flex-col sm:flex-row gap-3">
+                  {/* Search Box */}
+                  <div className="relative">
+                    <Icon 
+                      icon="mdi:magnify" 
+                      className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" 
+                    />
+                    <input
+                      type="text"
+                      placeholder="Cari cafe..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full sm:w-64 pl-10 pr-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    />
+                    {searchQuery && (
+                      <button
+                        onClick={() => setSearchQuery('')}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                      >
+                        <Icon icon="mdi:close" className="w-5 h-5" />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Sort Dropdown */}
+                  <select
+                    value={sortOrder}
+                    onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc')}
+                    className="px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  >
+                    <option value="asc">A → Z</option>
+                    <option value="desc">Z → A</option>
+                  </select>
+                </div>
+              </div>
             </div>
 
             {isLoading ? (
@@ -816,8 +855,9 @@ export default function AdminPage() {
                 </button>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full">
+              <>
+                <div className="overflow-x-auto">
+                  <table className="w-full">{/* ... table content ... */}
                   <thead className="bg-gray-700/50">
                     <tr>
                       <th className="text-left px-6 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
@@ -838,7 +878,7 @@ export default function AdminPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-700">
-                    {cafes.map((cafe) => (
+                    {paginatedCafes.map((cafe) => (
                       <tr
                         key={cafe.id}
                         className="hover:bg-gray-700/30 transition-colors"
@@ -926,145 +966,42 @@ export default function AdminPage() {
                   </tbody>
                 </table>
               </div>
-            )}
-          </div>
-        )}
 
-        {/* Overpass API Tab */}
-        {activeTab === "overpass" && (
-          <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
-            <div className="p-6 border-b border-gray-700">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-lg font-bold text-white">
-                    Cafe dari Overpass API
-                  </h2>
-                  <p className="text-gray-400 text-sm mt-1">
-                    Edit informasi cafe dari OpenStreetMap
+              {/* Pagination Controls */}
+              {filteredAndSortedCafes.length > itemsPerPage && (
+                <div className="p-4 border-t border-gray-700 flex items-center justify-between">
+                  <p className="text-gray-400 text-sm">
+                    Menampilkan {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, filteredAndSortedCafes.length)} dari {filteredAndSortedCafes.length} cafe
                   </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Cari cafe..."
-                    className="px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 w-64"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="overflow-x-auto max-h-[60vh] overflow-y-auto">
-              <table className="w-full">
-                <thead className="bg-gray-700/50 sticky top-0">
-                  <tr>
-                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-400 uppercase">
-                      Nama
-                    </th>
-                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-400 uppercase">
-                      Alamat
-                    </th>
-                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-400 uppercase">
-                      Status
-                    </th>
-                    <th className="text-right px-6 py-3 text-xs font-semibold text-gray-400 uppercase">
-                      Aksi
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-700">
-                  {filteredOverpassCafes.slice(0, 100).map((cafe) => (
-                    <tr
-                      key={cafe.id}
-                      className="hover:bg-gray-700/30 transition-colors"
+                  
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                      disabled={currentPage === 1}
+                      className="p-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
-                      <td className="px-6 py-4">
-                        <p className="text-white font-medium">{cafe.name}</p>
-                        {cafe.brand && (
-                          <p className="text-gray-400 text-xs">{cafe.brand}</p>
-                        )}
-                      </td>
-                      <td className="px-6 py-4">
-                        <p className="text-gray-300 text-sm">
-                          {cafeOverrides[cafe.id]?.address || cafe.address || (
-                            <span className="text-gray-500 italic">
-                              {cafe.lat.toFixed(6)}, {cafe.lon.toFixed(6)}
-                            </span>
-                          )}
-                        </p>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex gap-1 flex-wrap">
-                          {cafeOverrides[cafe.id]?.isHidden ? (
-                            <span className="px-2 py-1 bg-red-500/20 text-red-400 text-xs rounded-full flex items-center gap-1">
-                              <Icon icon="mdi:eye-off" className="w-3 h-3" />
-                              Tersembunyi
-                            </span>
-                          ) : cafeOverrides[cafe.id] ? (
-                            <span className="px-2 py-1 bg-purple-500/20 text-purple-400 text-xs rounded-full flex items-center gap-1">
-                              <Icon icon="mdi:pencil" className="w-3 h-3" />
-                              Diedit
-                            </span>
-                          ) : null}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          {/* Hide/Show button */}
-                          <button
-                            onClick={() => toggleCafeVisibility(cafe)}
-                            className={`p-2 rounded-lg transition-colors ${
-                              cafeOverrides[cafe.id]?.isHidden
-                                ? "bg-green-500/20 hover:bg-green-500/30 text-green-400"
-                                : "bg-amber-500/20 hover:bg-amber-500/30 text-amber-400"
-                            }`}
-                            title={
-                              cafeOverrides[cafe.id]?.isHidden
-                                ? "Tampilkan di Peta"
-                                : "Sembunyikan dari Peta"
-                            }
-                          >
-                            <Icon
-                              icon={
-                                cafeOverrides[cafe.id]?.isHidden
-                                  ? "mdi:eye"
-                                  : "mdi:eye-off"
-                              }
-                              className="w-4 h-4"
-                            />
-                          </button>
-                          <button
-                            onClick={() => setEditingOverpassCafe(cafe)}
-                            className="p-2 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-lg transition-colors"
-                            title="Edit Override"
-                          >
-                            <Icon icon="mdi:pencil" className="w-4 h-4" />
-                          </button>
-                          {cafeOverrides[cafe.id] && (
-                            <button
-                              onClick={() => handleDeleteOverride(cafe.id)}
-                              className="p-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg transition-colors"
-                              title="Hapus Override"
-                            >
-                              <Icon icon="mdi:delete" className="w-4 h-4" />
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            {filteredOverpassCafes.length > 100 && (
-              <div className="p-4 text-center text-gray-400 text-sm">
-                Menampilkan 100 dari {filteredOverpassCafes.length} cafe.
-                Gunakan pencarian untuk menemukan cafe.
-              </div>
+                      <Icon icon="mdi:chevron-left" className="w-5 h-5" />
+                    </button>
+                    
+                    <span className="text-white px-3">
+                      Halaman {currentPage} dari {totalPages}
+                    </span>
+                    
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                      disabled={currentPage === totalPages}
+                      className="p-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      <Icon icon="mdi:chevron-right" className="w-5 h-5" />
+                    </button>
+                  </div>
+                </div>
+              )}
+              </>
             )}
           </div>
         )}
+
 
         {/* Reports Tab */}
         {activeTab === "reports" && (
