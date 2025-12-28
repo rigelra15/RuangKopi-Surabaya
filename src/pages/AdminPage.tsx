@@ -16,6 +16,8 @@ import {
   addCustomCafe,
   approveCafe,
   rejectCafe,
+  toggleHideCafe,
+  togglePermanentlyClosed,
   getIssueReports,
   getCafeOverrides,
   saveCafeOverride,
@@ -278,7 +280,7 @@ export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState("");
   const [passwordError, setPasswordError] = useState("");
-  const [activeTab, setActiveTab] = useState<"custom" | "pending" | "reports">("custom");
+  const [activeTab, setActiveTab] = useState<"custom" | "pending" | "hidden" | "reports">("custom");
   const [cafes, setCafes] = useState<CustomCafe[]>([]);
   const [cafeOverrides, setCafeOverrides] = useState<Record<string, CafeOverrideData>>({});
   const [issueReports, setIssueReports] = useState<IssueReportData[]>([]);
@@ -321,19 +323,30 @@ export default function AdminPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated]);
 
-  // Separate pending and approved cafes
+  // Separate pending, approved, and hidden cafes
   const pendingCafes = useMemo(() => {
     return cafes.filter((cafe) => cafe.status === 'pending');
   }, [cafes]);
 
   const approvedCafes = useMemo(() => {
-    return cafes.filter((cafe) => cafe.status === 'approved');
+    return cafes.filter((cafe) => cafe.status === 'approved' || !cafe.status);
+  }, [cafes]);
+
+  const hiddenCafes = useMemo(() => {
+    return cafes.filter((cafe) => cafe.isHidden === true);
   }, [cafes]);
 
   // Filtered and sorted cafes
   const filteredAndSortedCafes = useMemo(() => {
     // Filter by active tab
-    let result = activeTab === 'pending' ? pendingCafes : approvedCafes;
+    let result: CustomCafe[];
+    if (activeTab === 'pending') {
+      result = pendingCafes;
+    } else if (activeTab === 'hidden') {
+      result = hiddenCafes;
+    } else {
+      result = approvedCafes;
+    }
 
     // Filter by search query
     if (searchQuery.trim()) {
@@ -357,7 +370,7 @@ export default function AdminPage() {
     });
 
     return result;
-  }, [activeTab, pendingCafes, approvedCafes, searchQuery, sortOrder]);
+  }, [activeTab, pendingCafes, approvedCafes, hiddenCafes, searchQuery, sortOrder]);
 
   // Pagination
   const totalPages = Math.ceil(filteredAndSortedCafes.length / itemsPerPage);
@@ -375,7 +388,7 @@ export default function AdminPage() {
   const loadCafes = async () => {
     setIsLoading(true);
     try {
-      const data = await getCustomCafes(true); // Include all (approved, pending, rejected) for admin
+      const data = await getCustomCafes(); // Include all (approved, pending, rejected) for admin
       setCafes(data);
     } catch (error) {
       console.error("Error loading cafes:", error);
@@ -405,6 +418,29 @@ export default function AdminPage() {
     }
   };
 
+  // Handle toggle hide cafe
+  const handleToggleHide = async (cafeId: string, hide: boolean) => {
+    try {
+      await toggleHideCafe(cafeId, hide);
+      showNotification(hide ? "Cafe disembunyikan" : "Cafe ditampilkan", "success");
+      await loadCafes(); // Refresh all cafes
+    } catch (error) {
+      console.error("Error toggling cafe visibility:", error);
+      showNotification("Gagal mengubah visibility cafe", "error");
+    }
+  };
+
+  // Handle toggle permanently closed
+  const handleToggleClosed = async (cafeId: string, closed: boolean) => {
+    try {
+      await togglePermanentlyClosed(cafeId, closed);
+      showNotification(closed ? "Cafe ditandai tutup permanen" : "Cafe ditandai buka", "success");
+      await loadCafes(); // Refresh all cafes
+    } catch (error) {
+      console.error("Error toggling cafe status:", error);
+      showNotification("Gagal mengubah status cafe", "error");
+    }
+  };
 
   // Handle override save
   const handleSaveOverride = async (
@@ -753,17 +789,17 @@ export default function AdminPage() {
           </div>
           <div className="bg-gray-800 rounded-xl p-4 border border-gray-700">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center">
+              <div className="w-10 h-10 bg-gray-600/50 rounded-lg flex items-center justify-center">
                 <Icon
-                  icon="mdi:pencil-box-multiple"
-                  className="w-5 h-5 text-purple-400"
+                  icon="mdi:eye-off"
+                  className="w-5 h-5 text-gray-400"
                 />
               </div>
               <div>
                 <p className="text-xl font-bold text-white">
-                  {Object.keys(cafeOverrides).length}
+                  {hiddenCafes.length}
                 </p>
-                <p className="text-gray-400 text-xs">Overrides</p>
+                <p className="text-gray-400 text-xs">Tersembunyi</p>
               </div>
             </div>
           </div>
@@ -818,6 +854,17 @@ export default function AdminPage() {
           >
             <Icon icon="mdi:clock-outline" className="w-5 h-5" />
             Pending ({pendingCafes.length})
+          </button>
+          <button
+            onClick={() => setActiveTab("hidden")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+              activeTab === "hidden"
+                ? "bg-gray-600 text-white"
+                : "bg-gray-800 text-gray-400 hover:bg-gray-700"
+            }`}
+          >
+            <Icon icon="mdi:eye-off" className="w-5 h-5" />
+            Tersembunyi ({hiddenCafes.length})
           </button>
           <button
             onClick={() => setActiveTab("reports")}
@@ -996,7 +1043,29 @@ export default function AdminPage() {
                           </p>
                         </td>
                         <td className="px-6 py-4 text-right">
-                          <div className="flex items-center justify-end gap-2">
+                          <div className="flex items-center justify-end gap-2 flex-wrap">
+                            {/* Toggle closed status */}
+                            <button
+                              onClick={() => handleToggleClosed(cafe.id, !cafe.isPermanentlyClosed)}
+                              className={`p-2 rounded-lg transition-colors ${
+                                cafe.isPermanentlyClosed
+                                  ? "bg-green-500/20 hover:bg-green-500/30 text-green-400"
+                                  : "bg-orange-500/20 hover:bg-orange-500/30 text-orange-400"
+                              }`}
+                              title={cafe.isPermanentlyClosed ? "Tandai Buka" : "Tandai Tutup Permanen"}
+                            >
+                              <Icon icon={cafe.isPermanentlyClosed ? "mdi:store" : "mdi:store-off"} className="w-4 h-4" />
+                            </button>
+                            
+                            {/* Hide button */}
+                            <button
+                              onClick={() => handleToggleHide(cafe.id, true)}
+                              className="p-2 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-lg transition-colors"
+                              title="Sembunyikan"
+                            >
+                              <Icon icon="mdi:eye-off" className="w-4 h-4" />
+                            </button>
+                            
                             <button
                               onClick={() => setEditingCafe(cafe)}
                               className="p-2 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-lg transition-colors"
@@ -1139,7 +1208,7 @@ export default function AdminPage() {
                         </div>
                         
                         <div className="text-xs text-gray-500">
-                          Ditambahkan: {new Date(cafe.createdAt).toLocaleString('id-ID')}
+                          Ditambahkan: {cafe.submittedAt ? new Date(cafe.submittedAt).toLocaleString('id-ID') : '-'}
                         </div>
                       </div>
                       
@@ -1174,6 +1243,76 @@ export default function AdminPage() {
           </div>
         )}
 
+
+        {/* Hidden Tab */}
+        {activeTab === "hidden" && (
+          <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
+            <div className="p-6 border-b border-gray-700">
+              <h2 className="text-lg font-bold text-white">Cafe Tersembunyi</h2>
+              <p className="text-gray-400 text-sm mt-1">
+                Cafe yang disembunyikan dari peta
+              </p>
+            </div>
+
+            {isLoading ? (
+              <div className="p-12 text-center">
+                <Icon
+                  icon="mdi:loading"
+                  className="w-8 h-8 text-primary-500 animate-spin mx-auto mb-4"
+                />
+                <p className="text-gray-400">Memuat data...</p>
+              </div>
+            ) : hiddenCafes.length === 0 ? (
+              <div className="p-12 text-center">
+                <Icon
+                  icon="mdi:eye-check"
+                  className="w-12 h-12 text-gray-600 mx-auto mb-4"
+                />
+                <p className="text-gray-400">Tidak ada cafe tersembunyi</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-gray-700">
+                {hiddenCafes.map((cafe) => (
+                  <div key={cafe.id} className="p-6">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h3 className="text-white font-semibold text-lg">{cafe.name}</h3>
+                          <span className="px-2 py-1 text-xs rounded-full bg-gray-600/50 text-gray-400">
+                            Tersembunyi
+                          </span>
+                        </div>
+                        
+                        {cafe.address && (
+                          <p className="text-gray-400 text-sm mb-2 flex items-center gap-2">
+                            <Icon icon="mdi:map-marker" className="w-4 h-4" />
+                            {cafe.address}
+                          </p>
+                        )}
+                      </div>
+                      
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleToggleHide(cafe.id, false)}
+                          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors"
+                        >
+                          <Icon icon="mdi:eye" className="w-5 h-5" />
+                          Tampilkan
+                        </button>
+                        <button
+                          onClick={() => setDeleteConfirm(cafe.id)}
+                          className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg transition-colors"
+                        >
+                          <Icon icon="mdi:delete" className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Reports Tab */}
         {activeTab === "reports" && (
