@@ -587,14 +587,20 @@ export default function CafeDetailPanel({
                     variants={itemVariants}
                     initial="hidden"
                     animate="visible"
-                    className={`flex items-start gap-2 text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}
+                    className="text-sm"
                   >
-                    <Icon icon="mdi:clock-outline" className="w-5 h-5 flex-shrink-0 text-primary-500 mt-0.5" />
-                    <div>
-                      <span className="font-medium">{text.openingHours}</span>
-                      <div className="whitespace-pre-line mt-0.5">
-                        {displayHours}
-                      </div>
+                    <div className={`flex items-center gap-2 mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                      <Icon icon="mdi:clock-outline" className="w-5 h-5 flex-shrink-0 text-primary-500" />
+                      <span className="font-semibold">{text.openingHours}</span>
+                    </div>
+                    <div className={`
+                      ml-7 px-3 py-2.5 rounded-xl whitespace-pre-line
+                      ${isDarkMode 
+                        ? 'bg-gray-800/50 text-gray-300 border border-gray-700' 
+                        : 'bg-amber-50/50 text-gray-700 border border-amber-100'
+                      }
+                    `}>
+                      {displayHours}
                     </div>
                   </motion.div>
                 ) : null;
