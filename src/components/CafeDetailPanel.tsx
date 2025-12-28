@@ -33,16 +33,16 @@ function formatCuisine(cuisine: unknown): string {
     .join(' ');
 }
 
-// Helper function to format opening hours
-// Converts OSM format like "Mo-Th 07:00-23:00, Fr-Su 07:00-23:59" to readable format
-function formatOpeningHours(hours: unknown, language: 'id' | 'en'): string {
+// Helper function to parse opening hours into structured data
+// Converts OSM format like "Mo-Th 07:00-23:00, Fr-Su 07:00-23:59" to array of {days, hours}
+function parseOpeningHours(hours: unknown, language: 'id' | 'en'): Array<{days: string, hours: string, isClosed: boolean}> {
   if (typeof hours !== 'string') {
-    return hours ? String(hours) : '';
+    return [];
   }
 
   // unwanted boolean values as strings
   if (hours.toLowerCase() === 'true' || hours.toLowerCase() === 'false') {
-    return '';
+    return [];
   }
 
   const dayMappings: Record<string, { id: string; en: string }> = {
@@ -56,24 +56,51 @@ function formatOpeningHours(hours: unknown, language: 'id' | 'en'): string {
     'PH': { id: 'Libur', en: 'Holidays' },
   };
 
-  let formatted = hours;
-
-  // Replace day abbreviations
-  Object.entries(dayMappings).forEach(([osm, names]) => {
-    const regex = new RegExp(`\\b${osm}\\b`, 'g');
-    formatted = formatted.replace(regex, names[language]);
-  });
-
-  // Format time separators for readability
-  // Replace comma separator with line break for multi-schedule display
-  formatted = formatted.replace(/,\s*/g, '\n');
-
-  // Add "off" translation
-  if (language === 'id') {
-    formatted = formatted.replace(/\boff\b/gi, 'Tutup');
-  }
-
-  return formatted;
+  const closedText = language === 'id' ? 'Tutup' : 'Closed';
+  
+  // Split by semicolon or comma to get individual entries
+  const entries = hours.split(/[;,]/).map(s => s.trim()).filter(Boolean);
+  
+  return entries.map(entry => {
+    let formatted = entry;
+    
+    // Replace day abbreviations
+    Object.entries(dayMappings).forEach(([osm, names]) => {
+      const regex = new RegExp(`\\b${osm}\\b`, 'g');
+      formatted = formatted.replace(regex, names[language]);
+    });
+    
+    // Check if closed
+    const isClosed = /\b(off|tutup|closed)\b/i.test(formatted);
+    
+    if (isClosed) {
+      // Extract day part before 'off' or 'Tutup'
+      const dayMatch = formatted.match(/^([^\s]+(?:\s*-\s*[^\s]+)?)/);
+      return {
+        days: dayMatch ? dayMatch[1].trim() : formatted,
+        hours: closedText,
+        isClosed: true
+      };
+    }
+    
+    // Split into day and time parts
+    // Format: "Mon-Fri 08:00-22:00" or "Sat 09:00-21:00"
+    const match = formatted.match(/^([^\d]+)\s+(.+)$/);
+    
+    if (match) {
+      return {
+        days: match[1].trim(),
+        hours: match[2].trim(),
+        isClosed: false
+      };
+    }
+    
+    return {
+      days: formatted,
+      hours: '',
+      isClosed: false
+    };
+  }).filter(entry => entry.days || entry.hours);
 }
 
 // Cache for geocoded addresses to avoid re-fetching
@@ -571,7 +598,7 @@ export default function CafeDetailPanel({
                 const hours = cafe.openingHours;
                 // Only show if it's a valid string (not boolean, not empty)
                 const isValidHours = hours && typeof hours === 'string' && hours.trim() !== '' && hours !== 'true' && hours !== 'false';
-                const formattedHours = isValidHours ? formatOpeningHours(hours, language) : '';
+                const parsedHours = isValidHours ? parseOpeningHours(hours, language) : [];
                 
                 // Also check instagram field - sometimes opening hours end up there
                 const cafeData = cafe as unknown as Record<string, unknown>;
@@ -579,9 +606,9 @@ export default function CafeDetailPanel({
                 const isInstagramActuallyHours = instagramValue && typeof instagramValue === 'string' && 
                   (instagramValue.includes(':') || instagramValue.match(/\d{1,2}[:.,-]\d{2}/));
                 
-                const displayHours = formattedHours || (isInstagramActuallyHours ? formatOpeningHours(instagramValue, language) : '');
+                const displayHours = parsedHours.length > 0 ? parsedHours : (isInstagramActuallyHours ? parseOpeningHours(instagramValue, language) : []);
                 
-                return displayHours ? (
+                return displayHours.length > 0 ? (
                   <motion.div 
                     custom={1}
                     variants={itemVariants}
@@ -594,13 +621,34 @@ export default function CafeDetailPanel({
                       <span className="font-semibold">{text.openingHours}</span>
                     </div>
                     <div className={`
-                      ml-7 px-3 py-2.5 rounded-xl whitespace-pre-line
+                      ml-7 rounded-xl overflow-hidden
                       ${isDarkMode 
-                        ? 'bg-gray-800/50 text-gray-300 border border-gray-700' 
-                        : 'bg-amber-50/50 text-gray-700 border border-amber-100'
+                        ? 'bg-gray-800/50 border border-gray-700' 
+                        : 'bg-amber-50/50 border border-amber-100'
                       }
                     `}>
-                      {displayHours}
+                      {displayHours.map((entry, index) => (
+                        <div 
+                          key={index}
+                          className={`
+                            flex items-center justify-between px-3 py-2
+                            ${index > 0 ? (isDarkMode ? 'border-t border-gray-700' : 'border-t border-amber-100') : ''}
+                          `}
+                        >
+                          <span className={`font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                            {entry.days}
+                          </span>
+                          <span className={`
+                            font-mono text-sm
+                            ${entry.isClosed 
+                              ? (isDarkMode ? 'text-red-400' : 'text-red-600')
+                              : (isDarkMode ? 'text-primary-400' : 'text-primary-600')
+                            }
+                          `}>
+                            {entry.hours}
+                          </span>
+                        </div>
+                      ))}
                     </div>
                   </motion.div>
                 ) : null;
