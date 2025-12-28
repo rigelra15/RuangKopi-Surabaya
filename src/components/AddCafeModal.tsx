@@ -55,7 +55,7 @@ export default function AddCafeModal({
     hasWifi: false,
     wifiFree: false,
     hasOutdoorSeating: false,
-    smokingPolicy: 'no',
+    smokingPolicy: '',
     hasTakeaway: false,
     hasAirConditioning: false,
     goodForWorking: false,
@@ -100,7 +100,8 @@ export default function AddCafeModal({
     hasTakeaway: language === 'id' ? 'Takeaway' : 'Takeaway',
     hasAC: language === 'id' ? 'AC' : 'Air Conditioning',
     goodForWorking: language === 'id' ? 'Cocok untuk WFC/Laptop' : 'Good for Working/Laptop',
-    smokingPolicy: language === 'id' ? 'Kebijakan Merokok' : 'Smoking Policy',
+    smokingPolicy: language === 'id' ? 'Kebijakan Merokok (opsional)' : 'Smoking Policy (optional)',
+    smokingNone: language === 'id' ? 'Tidak diisi' : 'Not specified',
     smokingNo: language === 'id' ? 'Dilarang' : 'No Smoking',
     smokingYes: language === 'id' ? 'Boleh' : 'Allowed',
     smokingOutside: language === 'id' ? 'Hanya di Luar' : 'Outside Only',
@@ -155,7 +156,7 @@ export default function AddCafeModal({
         hasWifi: false,
         wifiFree: false,
         hasOutdoorSeating: false,
-        smokingPolicy: 'no',
+        smokingPolicy: '',
         hasTakeaway: false,
         hasAirConditioning: false,
         goodForWorking: false,
@@ -736,6 +737,7 @@ export default function AddCafeModal({
           onChange={handleInputChange}
           className={inputClass}
         >
+          <option value="">{t.smokingNone}</option>
           <option value="no">{t.smokingNo}</option>
           <option value="yes">{t.smokingYes}</option>
           <option value="outside">{t.smokingOutside}</option>

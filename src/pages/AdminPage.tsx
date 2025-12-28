@@ -1627,7 +1627,7 @@ function CafeFormModal({
     wifiFree: cafe?.wifiFree || false,
     hasOutdoorSeating: cafe?.hasOutdoorSeating || false,
     smokingPolicy:
-      (cafe?.smokingPolicy as "yes" | "no" | "outside" | "separated") || "no",
+      (cafe?.smokingPolicy as "yes" | "no" | "outside" | "separated") || "",
     hasTakeaway: cafe?.hasTakeaway || false,
     hasAirConditioning: cafe?.hasAirConditioning || false,
     goodForWorking: cafe?.goodForWorking || false,
@@ -2247,7 +2247,7 @@ function CafeFormModal({
               </div>
 
               <div>
-                <label className={labelClass}>Kebijakan Merokok</label>
+                <label className={labelClass}>Kebijakan Merokok (opsional)</label>
                 <select
                   value={formData.smokingPolicy}
                   onChange={(e) =>
@@ -2262,6 +2262,7 @@ function CafeFormModal({
                   }
                   className={inputClass}
                 >
+                  <option value="">Tidak diisi</option>
                   <option value="no">Dilarang Merokok</option>
                   <option value="yes">Boleh Merokok</option>
                   <option value="outside">Hanya di Luar</option>
