@@ -433,7 +433,7 @@ export default function CafeDetailPanel({
                     )}
                     {distance !== null && (
                       <p className="text-sm text-primary-500 font-medium mt-0.5 flex items-center gap-1">
-                        <Icon icon="mdi:walk" className="w-4 h-4" />
+                        <Icon icon="mdi:walk" className="w-3.5 h-3.5 flex-shrink-0" />
                         {formatDistance(distance)} {text.fromYou}
                       </p>
                     )}
