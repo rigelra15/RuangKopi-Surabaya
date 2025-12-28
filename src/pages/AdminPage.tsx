@@ -17,7 +17,6 @@ import {
   getIssueReports,
   getCafeOverrides,
   saveCafeOverride,
-  deleteCafeOverride,
   bulkAddCafes,
   type CustomCafe,
   type CustomCafeFormData,
@@ -416,6 +415,7 @@ export default function AdminPage() {
   };
 
   // Handle override delete
+  /*
   const handleDeleteOverride = async (originalId: string) => {
     try {
       await deleteCafeOverride(originalId);
@@ -430,8 +430,10 @@ export default function AdminPage() {
       showNotification("Gagal menghapus override", "error");
     }
   };
+  */
 
   // Toggle cafe visibility (hide/show from map)
+  /*
   const toggleCafeVisibility = async (cafe: Cafe) => {
     const existingOverride = cafeOverrides[cafe.id];
     const isCurrentlyHidden = existingOverride?.isHidden;
@@ -455,6 +457,7 @@ export default function AdminPage() {
       showNotification("Gagal mengubah visibilitas", "error");
     }
   };
+  */
 
   // Handle migration from Overpass API to Spreadsheet
   const handleMigration = async () => {
