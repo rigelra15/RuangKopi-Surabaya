@@ -14,7 +14,7 @@ import StatsModal from './components/StatsModal';
 import AddCafeModal from './components/AddCafeModal';
 import { type Cafe } from './services/cafeService';
 import { calculateDistance } from './services/favoritesService';
-import { getCustomCafes, getCafeOverrides, type CustomCafe } from './services/customCafeService';
+import { getApprovedCafes, getCafeOverrides, type CustomCafe } from './services/customCafeService';
 
 function App() {
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -74,7 +74,7 @@ function App() {
     const loadCafes = async () => {
       setIsSearching(true);
       try {
-        const cafesData = await getCustomCafes();
+        const cafesData = await getApprovedCafes();
         setCustomCafes(cafesData);
       } catch (error) {
         console.error('Error loading cafes:', error);
@@ -425,7 +425,7 @@ function App() {
         onSuccess={async () => {
           // Refresh cafes from spreadsheet
           console.log('New cafe added successfully, refreshing...');
-          const updatedCafes = await getCustomCafes();
+          const updatedCafes = await getApprovedCafes();
           setCustomCafes(updatedCafes);
         }}
       />

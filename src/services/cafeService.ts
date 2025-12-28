@@ -20,6 +20,7 @@ export interface Cafe {
   smokingPolicy?: 'yes' | 'no' | 'outside' | 'separated' | 'isolated' | string;
   hasTakeaway?: boolean;
   hasAirConditioning?: boolean;
+  goodForWorking?: boolean; // WFC/laptop friendly
   operator?: string;
   // Menu link
   menuUrl?: string;

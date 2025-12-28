@@ -5,17 +5,24 @@ import type { Cafe } from './cafeService';
 const SHEETS_API_URL = import.meta.env.VITE_SHEETS_API_URL;
 const SECRET_KEY = import.meta.env.VITE_SHEETS_SECRET_KEY;
 
+// Cafe submission status
+export type CafeStatus = 'pending' | 'approved' | 'rejected';
+
 // Extended Cafe type for custom submissions
 export interface CustomCafe extends Cafe {
   isCustom: true;
   submittedAt?: string;
-  status?: 'pending' | 'approved' | 'rejected';
   instagram?: string;
   priceRange?: 'low' | 'medium' | 'high';
   description?: string;
   logo?: string; // Cloudinary URL
   photos?: string[]; // Cloudinary URLs
   menuUrl?: string;
+  status?: CafeStatus; // Approval status - defaults to 'pending'
+  reviewedAt?: string; // When admin reviewed
+  rejectionReason?: string; // If rejected, why
+  isHidden?: boolean; // Hidden from map
+  isPermanentlyClosed?: boolean; // Cafe has permanently closed
 }
 
 // Form data for submitting a new cafe
@@ -32,7 +39,7 @@ export interface CustomCafeFormData {
   hasWifi?: boolean;
   wifiFree?: boolean;
   hasOutdoorSeating?: boolean;
-  smokingPolicy?: 'yes' | 'no' | 'outside' | 'separated';
+  smokingPolicy?: 'yes' | 'no' | 'outside' | 'separated' | '';
   hasTakeaway?: boolean;
   hasAirConditioning?: boolean;
   goodForWorking?: boolean;
@@ -106,8 +113,8 @@ export async function addCustomCafe(formData: CustomCafeFormData): Promise<strin
   }
 }
 
-// Get all custom cafes from spreadsheet (only approved by default)
-export async function getCustomCafes(includeAll = false): Promise<CustomCafe[]> {
+// Get all custom cafes from spreadsheet
+export async function getCustomCafes(): Promise<CustomCafe[]> {
   try {
     const url = `${SHEETS_API_URL}?key=${encodeURIComponent(SECRET_KEY)}`;
     const response = await fetch(url, {
@@ -121,7 +128,7 @@ export async function getCustomCafes(includeAll = false): Promise<CustomCafe[]> 
     }
 
     // Transform data to match CustomCafe interface
-    let cafes: CustomCafe[] = result.data.map((item: Record<string, unknown>) => ({
+    const cafes: CustomCafe[] = result.data.map((item: Record<string, unknown>) => ({
       id: item.id as string,
       name: item.name as string,
       lat: Number(item.lat),
@@ -133,16 +140,22 @@ export async function getCustomCafes(includeAll = false): Promise<CustomCafe[]> 
       instagram: item.instagram as string | undefined,
       menuUrl: item.menuUrl as string | undefined,
       logo: item.logo as string | undefined,
-      status: (item.status as 'pending' | 'approved' | 'rejected') || 'approved',
       hasWifi: item.hasWifi === true || item.hasWifi === 'true',
       wifiFree: item.wifiFree === true || item.wifiFree === 'true',
       hasOutdoorSeating: item.hasOutdoorSeating === true || item.hasOutdoorSeating === 'true',
       hasTakeaway: item.hasTakeaway === true || item.hasTakeaway === 'true',
       hasAirConditioning: item.hasAirConditioning === true || item.hasAirConditioning === 'true',
+      goodForWorking: item.goodForWorking === true || item.goodForWorking === 'true',
       smokingPolicy: item.smokingPolicy as string | undefined,
       priceRange: item.priceRange as 'low' | 'medium' | 'high' | undefined,
       description: item.description as string | undefined,
       submittedAt: item.submittedAt as string | undefined,
+      // Approval status - default to 'approved' for backward compatibility with existing cafes
+      status: (item.status as CafeStatus) || 'approved',
+      reviewedAt: item.reviewedAt as string | undefined,
+      rejectionReason: item.rejectionReason as string | undefined,
+      isHidden: item.isHidden === true || item.isHidden === 'true',
+      isPermanentlyClosed: item.isPermanentlyClosed === true || item.isPermanentlyClosed === 'true',
       // Parse photos - stored as comma-separated URLs or JSON array
       photos: item.photos 
         ? (typeof item.photos === 'string' 
@@ -151,11 +164,6 @@ export async function getCustomCafes(includeAll = false): Promise<CustomCafe[]> 
         : undefined,
       isCustom: true as const,
     }));
-
-    // Filter only approved cafes for regular users
-    if (!includeAll) {
-      cafes = cafes.filter(cafe => cafe.status === 'approved');
-    }
 
     return cafes;
   } catch (error) {
@@ -277,27 +285,13 @@ export async function deleteCustomCafe(cafeId: string): Promise<void> {
   }
 }
 
-// Approve a pending cafe (admin only)
+// Approve a pending cafe submission
 export async function approveCafe(cafeId: string): Promise<void> {
   try {
-    const response = await fetch(SHEETS_API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'text/plain',
-      },
-      body: JSON.stringify({
-        key: SECRET_KEY,
-        action: 'approve',
-        id: cafeId,
-      }),
-    });
-
-    const result = await response.json();
-
-    if (!result.success) {
-      throw new Error(result.error || 'Failed to approve cafe');
-    }
-
+    await updateCustomCafe(cafeId, {
+      status: 'approved',
+      reviewedAt: new Date().toISOString(),
+    } as unknown as Partial<CustomCafeFormData>);
     console.log('Cafe approved:', cafeId);
   } catch (error) {
     console.error('Error approving cafe:', error);
@@ -305,32 +299,67 @@ export async function approveCafe(cafeId: string): Promise<void> {
   }
 }
 
-// Reject a pending cafe (admin only)
-export async function rejectCafe(cafeId: string): Promise<void> {
+// Reject a pending cafe submission
+export async function rejectCafe(cafeId: string, reason?: string): Promise<void> {
   try {
-    const response = await fetch(SHEETS_API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'text/plain',
-      },
-      body: JSON.stringify({
-        key: SECRET_KEY,
-        action: 'reject',
-        id: cafeId,
-      }),
-    });
-
-    const result = await response.json();
-
-    if (!result.success) {
-      throw new Error(result.error || 'Failed to reject cafe');
-    }
-
+    await updateCustomCafe(cafeId, {
+      status: 'rejected',
+      reviewedAt: new Date().toISOString(),
+      rejectionReason: reason,
+    } as unknown as Partial<CustomCafeFormData>);
     console.log('Cafe rejected:', cafeId);
   } catch (error) {
     console.error('Error rejecting cafe:', error);
     throw error;
   }
+}
+
+// Toggle cafe visibility (hide/show from map)
+export async function toggleHideCafe(cafeId: string, isHidden: boolean): Promise<void> {
+  try {
+    await updateCustomCafe(cafeId, {
+      isHidden,
+    } as unknown as Partial<CustomCafeFormData>);
+    console.log(`Cafe ${isHidden ? 'hidden' : 'shown'}:`, cafeId);
+  } catch (error) {
+    console.error('Error toggling cafe visibility:', error);
+    throw error;
+  }
+}
+
+// Toggle cafe permanently closed status
+export async function togglePermanentlyClosed(cafeId: string, isPermanentlyClosed: boolean): Promise<void> {
+  try {
+    await updateCustomCafe(cafeId, {
+      isPermanentlyClosed,
+    } as unknown as Partial<CustomCafeFormData>);
+    console.log(`Cafe marked as ${isPermanentlyClosed ? 'permanently closed' : 'open'}:`, cafeId);
+  } catch (error) {
+    console.error('Error toggling cafe closed status:', error);
+    throw error;
+  }
+}
+
+// Get only approved cafes (for public map display)
+export async function getApprovedCafes(): Promise<CustomCafe[]> {
+  const allCafes = await getCustomCafes();
+  // Only show approved AND not hidden cafes on the map
+  return allCafes.filter(cafe => 
+    (cafe.status === 'approved' || !cafe.status) && 
+    !cafe.isHidden
+  );
+}
+
+// Get pending cafes (for admin review)
+export async function getPendingCafes(): Promise<CustomCafe[]> {
+  const allCafes = await getCustomCafes();
+  return allCafes.filter(cafe => cafe.status === 'pending');
+}
+
+// Get hidden cafes (for admin management)
+export async function getHiddenCafes(): Promise<CustomCafe[]> {
+  const allCafes = await getCustomCafes();
+  return allCafes.filter(cafe => cafe.isHidden === true);
 }
 
 // Submit an issue report
