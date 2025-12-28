@@ -208,7 +208,7 @@ function App() {
   }, []);
 
   return (
-    <div className={`h-screen w-screen overflow-hidden ${isDarkMode ? 'dark' : ''}`}>
+    <div className={`h-svh w-screen overflow-hidden ${isDarkMode ? 'dark' : ''}`}>
       {/* Map Container - Full Screen */}
       <div className="absolute inset-0">
         <MapView 
