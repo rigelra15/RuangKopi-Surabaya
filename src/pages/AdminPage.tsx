@@ -14,6 +14,8 @@ import {
   deleteCustomCafe,
   updateCustomCafe,
   addCustomCafe,
+  approveCafe,
+  rejectCafe,
   getIssueReports,
   getCafeOverrides,
   saveCafeOverride,
@@ -276,7 +278,7 @@ export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState("");
   const [passwordError, setPasswordError] = useState("");
-  const [activeTab, setActiveTab] = useState<"custom" | "reports">("custom");
+  const [activeTab, setActiveTab] = useState<"custom" | "pending" | "reports">("custom");
   const [cafes, setCafes] = useState<CustomCafe[]>([]);
   const [cafeOverrides, setCafeOverrides] = useState<Record<string, CafeOverrideData>>({});
   const [issueReports, setIssueReports] = useState<IssueReportData[]>([]);
@@ -319,9 +321,19 @@ export default function AdminPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated]);
 
+  // Separate pending and approved cafes
+  const pendingCafes = useMemo(() => {
+    return cafes.filter((cafe) => cafe.status === 'pending');
+  }, [cafes]);
+
+  const approvedCafes = useMemo(() => {
+    return cafes.filter((cafe) => cafe.status === 'approved');
+  }, [cafes]);
+
   // Filtered and sorted cafes
   const filteredAndSortedCafes = useMemo(() => {
-    let result = cafes;
+    // Filter by active tab
+    let result = activeTab === 'pending' ? pendingCafes : approvedCafes;
 
     // Filter by search query
     if (searchQuery.trim()) {
@@ -345,7 +357,7 @@ export default function AdminPage() {
     });
 
     return result;
-  }, [cafes, searchQuery, sortOrder]);
+  }, [activeTab, pendingCafes, approvedCafes, searchQuery, sortOrder]);
 
   // Pagination
   const totalPages = Math.ceil(filteredAndSortedCafes.length / itemsPerPage);
@@ -363,7 +375,7 @@ export default function AdminPage() {
   const loadCafes = async () => {
     setIsLoading(true);
     try {
-      const data = await getCustomCafes();
+      const data = await getCustomCafes(true); // Include all (approved, pending, rejected) for admin
       setCafes(data);
     } catch (error) {
       console.error("Error loading cafes:", error);
@@ -585,6 +597,32 @@ export default function AdminPage() {
     }
   };
 
+  const handleApprove = async (cafeId: string) => {
+    try {
+      await approveCafe(cafeId);
+      setCafes((prev) =>
+        prev.map((c) => (c.id === cafeId ? { ...c, status: 'approved' } : c))
+      );
+      showNotification("Cafe berhasil di-approve", "success");
+    } catch (error) {
+      console.error("Error approving cafe:", error);
+      showNotification("Gagal approve cafe", "error");
+    }
+  };
+
+  const handleReject = async (cafeId: string) => {
+    try {
+      await rejectCafe(cafeId);
+      setCafes((prev) =>
+        prev.map((c) => (c.id === cafeId ? { ...c, status: 'rejected' } : c))
+      );
+      showNotification("Cafe berhasil di-reject", "success");
+    } catch (error) {
+      console.error("Error rejecting cafe:", error);
+      showNotification("Gagal reject cafe", "error");
+    }
+  };
+
   // Login form
   if (!isAuthenticated) {
     return (
@@ -744,14 +782,14 @@ export default function AdminPage() {
           </div>
           <div className="bg-gray-800 rounded-xl p-4 border border-gray-700">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
-                <Icon icon="mdi:eye-off" className="w-5 h-5 text-green-400" />
+              <div className="w-10 h-10 bg-amber-500/20 rounded-lg flex items-center justify-center">
+                <Icon icon="mdi:clock-outline" className="w-5 h-5 text-amber-400" />
               </div>
               <div>
                 <p className="text-xl font-bold text-white">
-                  {Object.values(cafeOverrides).filter(o => o.isHidden).length}
+                  {pendingCafes.length}
                 </p>
-                <p className="text-gray-400 text-xs">Tersembunyi</p>
+                <p className="text-gray-400 text-xs">Pending</p>
               </div>
             </div>
           </div>
@@ -768,7 +806,18 @@ export default function AdminPage() {
             }`}
           >
             <Icon icon="mdi:coffee" className="w-5 h-5" />
-            Daftar Cafe ({filteredAndSortedCafes.length})
+            Daftar Cafe ({approvedCafes.length})
+          </button>
+          <button
+            onClick={() => setActiveTab("pending")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+              activeTab === "pending"
+                ? "bg-primary-500 text-white"
+                : "bg-gray-800 text-gray-400 hover:bg-gray-700"
+            }`}
+          >
+            <Icon icon="mdi:clock-outline" className="w-5 h-5" />
+            Pending ({pendingCafes.length})
           </button>
           <button
             onClick={() => setActiveTab("reports")}
@@ -1001,6 +1050,126 @@ export default function AdminPage() {
                 </div>
               )}
               </>
+            )}
+          </div>
+        )}
+
+        {/* Pending Tab */}
+        {activeTab === "pending" && (
+          <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
+            <div className="p-6 border-b border-gray-700">
+              <h2 className="text-lg font-bold text-white">Cafe Pending Approval</h2>
+              <p className="text-gray-400 text-sm mt-1">
+                Cafe yang ditambahkan pengguna menunggu persetujuan
+              </p>
+            </div>
+
+            {isLoading ? (
+              <div className="p-12 text-center">
+                <Icon
+                  icon="mdi:loading"
+                  className="w-8 h-8 text-primary-500 animate-spin mx-auto mb-4"
+                />
+                <p className="text-gray-400">Memuat data...</p>
+              </div>
+            ) : pendingCafes.length === 0 ? (
+              <div className="p-12 text-center">
+                <Icon
+                  icon="mdi:check-circle"
+                  className="w-12 h-12 text-green-600 mx-auto mb-4"
+                />
+                <p className="text-gray-400">Tidak ada cafe pending</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-gray-700">
+                {pendingCafes.map((cafe) => (
+                  <div key={cafe.id} className="p-6">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h3 className="text-white font-semibold text-lg">{cafe.name}</h3>
+                          <span className="px-2 py-1 text-xs rounded-full bg-amber-500/20 text-amber-400">
+                            Pending
+                          </span>
+                        </div>
+                        
+                        {cafe.address && (
+                          <p className="text-gray-400 text-sm mb-2 flex items-center gap-2">
+                            <Icon icon="mdi:map-marker" className="w-4 h-4" />
+                            {cafe.address}
+                          </p>
+                        )}
+                        
+                        {cafe.description && (
+                          <p className="text-gray-400 text-sm mb-3">{cafe.description}</p>
+                        )}
+                        
+                        <div className="flex flex-wrap gap-2 mb-3">
+                          {cafe.hasWifi && (
+                            <span className="px-2 py-1 text-xs rounded-full bg-blue-500/20 text-blue-400">
+                              WiFi
+                            </span>
+                          )}
+                          {cafe.wifiFree && (
+                            <span className="px-2 py-1 text-xs rounded-full bg-green-500/20 text-green-400">
+                              WiFi Gratis
+                            </span>
+                          )}
+                          {cafe.hasAirConditioning && (
+                            <span className="px-2 py-1 text-xs rounded-full bg-cyan-500/20 text-cyan-400">
+                              AC
+                            </span>
+                          )}
+                          {cafe.hasOutdoorSeating && (
+                            <span className="px-2 py-1 text-xs rounded-full bg-emerald-500/20 text-emerald-400">
+                              Outdoor
+                            </span>
+                          )}
+                          {cafe.hasTakeaway && (
+                            <span className="px-2 py-1 text-xs rounded-full bg-purple-500/20 text-purple-400">
+                              Takeaway
+                            </span>
+                          )}
+                          {cafe.goodForWorking && (
+                            <span className="px-2 py-1 text-xs rounded-full bg-orange-500/20 text-orange-400">
+                              <Icon icon="mdi:laptop" className="w-3 h-3 inline mr-1" />
+                              WFC-Friendly
+                            </span>
+                          )}
+                        </div>
+                        
+                        <div className="text-xs text-gray-500">
+                          Ditambahkan: {new Date(cafe.createdAt).toLocaleString('id-ID')}
+                        </div>
+                      </div>
+                      
+                      <div className="flex flex-col gap-2">
+                        <button
+                          onClick={() => handleApprove(cafe.id)}
+                          className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg transition-colors"
+                        >
+                          <Icon icon="mdi:check" className="w-5 h-5" />
+                          Approve
+                        </button>
+                        <button
+                          onClick={() => handleReject(cafe.id)}
+                          className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg transition-colors"
+                        >
+                          <Icon icon="mdi:close" className="w-5 h-5" />
+                          Reject
+                        </button>
+                        <button
+                          onClick={() => setEditingCafe(cafe)}
+                          className="flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+                        >
+                          <Icon icon="mdi:pencil" className="w-5 h-5" />
+                          Edit
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
         )}
@@ -1322,6 +1491,7 @@ function CafeFormModal({
       (cafe?.smokingPolicy as "yes" | "no" | "outside" | "separated") || "no",
     hasTakeaway: cafe?.hasTakeaway || false,
     hasAirConditioning: cafe?.hasAirConditioning || false,
+    goodForWorking: cafe?.goodForWorking || false,
     priceRange: cafe?.priceRange || "medium",
     description: cafe?.description || "",
     logo: cafe?.logo || undefined,
