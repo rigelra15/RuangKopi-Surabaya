@@ -1990,12 +1990,19 @@ function CafeFormModal({
                     <input
                       type="tel"
                       value={formData.phone}
-                      onChange={(e) =>
+                      onChange={(e) => {
+                        // Remove non-digits, then strip leading 0 or 62
+                        let value = e.target.value.replace(/\D/g, '');
+                        if (value.startsWith('62')) {
+                          value = value.substring(2);
+                        } else if (value.startsWith('0')) {
+                          value = value.substring(1);
+                        }
                         setFormData((prev) => ({
                           ...prev,
-                          phone: e.target.value,
-                        }))
-                      }
+                          phone: value,
+                        }));
+                      }}
                       placeholder="812 3456 7890"
                       className={`${inputClass} pl-12`}
                     />

@@ -394,7 +394,16 @@ export default function AddCafeModal({
               type="tel"
               name="phone"
               value={formData.phone}
-              onChange={handleInputChange}
+              onChange={(e) => {
+                // Remove non-digits, then strip leading 0 or 62
+                let value = e.target.value.replace(/\D/g, '');
+                if (value.startsWith('62')) {
+                  value = value.substring(2);
+                } else if (value.startsWith('0')) {
+                  value = value.substring(1);
+                }
+                setFormData(prev => ({ ...prev, phone: value }));
+              }}
               placeholder={t.phonePlaceholder}
               className={`${inputClass} pl-12`}
             />
