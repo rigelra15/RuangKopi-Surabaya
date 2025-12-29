@@ -1,7 +1,7 @@
-import { MapContainer, TileLayer, useMap, Marker, Popup, Circle } from 'react-leaflet';
+import { MapContainer, TileLayer, useMap, Marker, Popup, Circle, Polyline } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
 import 'leaflet/dist/leaflet.css';
-import { useEffect, useMemo, useRef, useCallback } from 'react';
+import { useEffect, useMemo, useRef, useCallback, useState } from 'react';
 import L from 'leaflet';
 import type { Cafe } from '../services/cafeService';
 
@@ -247,6 +247,45 @@ function MapController({
   return null;
 }
 
+// Component to handle route fit bounds
+function RouteController({ 
+  routeCoordinates,
+  userLocation,
+  routeDestination
+}: { 
+  routeCoordinates: [number, number][];
+  userLocation: [number, number] | null;
+  routeDestination: { lat: number; lon: number; name: string } | null;
+}) {
+  const map = useMap();
+  
+  // Fit bounds when route is loaded - use flyToBounds for smooth animation
+  useEffect(() => {
+    if (routeCoordinates.length > 0 && userLocation && routeDestination) {
+      // Create bounds that includes user location and destination
+      const bounds = L.latLngBounds([
+        userLocation,
+        [routeDestination.lat, routeDestination.lon]
+      ]);
+      
+      // Extend bounds with all route coordinates
+      routeCoordinates.forEach(coord => {
+        bounds.extend(coord);
+      });
+      
+      // Use flyToBounds for smooth animation
+      const isMobile = window.innerWidth < 768;
+      map.flyToBounds(bounds, {
+        padding: isMobile ? [50, 50] : [80, 80],
+        maxZoom: 15,
+        duration: 1.5, // Smooth 1.5 second animation
+      });
+    }
+  }, [map, routeCoordinates, userLocation, routeDestination]);
+
+  return null;
+}
+
 interface MapViewProps {
   isDarkMode: boolean;
   userLocation: [number, number] | null;
@@ -254,6 +293,8 @@ interface MapViewProps {
   selectedCafe: Cafe | null;
   onCafeSelect: (cafe: Cafe) => void;
   showCafeDetail: boolean;
+  routeDestination?: { lat: number; lon: number; name: string } | null;
+  onRouteInfoChange?: (info: { distance: number; duration: number } | null) => void;
 }
 
 export default function MapView({ 
@@ -262,8 +303,69 @@ export default function MapView({
   cafes, 
   selectedCafe,
   onCafeSelect,
-  showCafeDetail
+  showCafeDetail,
+  routeDestination,
+  onRouteInfoChange
 }: MapViewProps) {
+  // Route state
+  const [routeCoordinates, setRouteCoordinates] = useState<[number, number][]>([]);
+  const [routeInfo, setRouteInfo] = useState<{ distance: number; duration: number } | null>(null);
+  const [isLoadingRoute, setIsLoadingRoute] = useState(false);
+
+  // Fetch route when destination changes
+  useEffect(() => {
+    if (!routeDestination || !userLocation) {
+      setRouteCoordinates([]);
+      setRouteInfo(null);
+      return;
+    }
+
+    const fetchRoute = async () => {
+      setIsLoadingRoute(true);
+      try {
+        // OSRM API expects lon,lat format
+        const start = `${userLocation[1]},${userLocation[0]}`;
+        const end = `${routeDestination.lon},${routeDestination.lat}`;
+        
+        const response = await fetch(
+          `https://router.project-osrm.org/route/v1/driving/${start};${end}?overview=full&geometries=geojson`
+        );
+        
+        if (!response.ok) throw new Error('Failed to fetch route');
+        
+        const data = await response.json();
+        
+        if (data.routes && data.routes.length > 0) {
+          const route = data.routes[0];
+          // Convert GeoJSON coordinates [lon, lat] to Leaflet format [lat, lon]
+          const coords: [number, number][] = route.geometry.coordinates.map(
+            (coord: [number, number]) => [coord[1], coord[0]]
+          );
+          setRouteCoordinates(coords);
+          setRouteInfo({
+            distance: route.distance / 1000, // Convert to km
+            duration: route.duration / 60, // Convert to minutes
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching route:', error);
+        setRouteCoordinates([]);
+        setRouteInfo(null);
+      } finally {
+        setIsLoadingRoute(false);
+      }
+    };
+
+    fetchRoute();
+  }, [routeDestination, userLocation]);
+
+  // Notify parent about route info changes
+  useEffect(() => {
+    if (onRouteInfoChange) {
+      onRouteInfoChange(routeInfo);
+    }
+  }, [routeInfo, onRouteInfoChange]);
+
   // Different tile layers for light and dark mode
   // CARTO Positron - clean minimal style with less street names
   const lightTileUrl = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
@@ -330,32 +432,76 @@ export default function MapView({
         </>
       )}
 
-      {/* Cafe markers with clustering */}
-      <MarkerClusterGroup
-        chunkedLoading
-        iconCreateFunction={createClusterCustomIcon}
-        maxClusterRadius={60}
-        spiderfyOnMaxZoom={true}
-        showCoverageOnHover={false}
-        zoomToBoundsOnClick={true}
-        disableClusteringAtZoom={17}
-      >
-        {cafes.map((cafe) => {
-          const isSelected = selectedCafe?.id === cafe.id;
-          return (
-            <Marker 
-              key={cafe.id} 
-              position={[cafe.lat, cafe.lon]} 
-              icon={isSelected ? selectedCoffeeIcon : coffeeIcon}
-              zIndexOffset={isSelected ? 1000 : 0}
-              ref={(marker) => setMarkerRef(cafe.id, marker)}
-              eventHandlers={{
-                click: () => onCafeSelect(cafe),
-              }}
-            />
-          );
-        })}
-      </MarkerClusterGroup>
+      {/* Route polyline */}
+      {routeCoordinates.length > 0 && (
+        <Polyline
+          positions={routeCoordinates}
+          pathOptions={{
+            color: '#6F4E37',
+            weight: 5,
+            opacity: 0.8,
+            lineCap: 'round',
+            lineJoin: 'round',
+          }}
+        />
+      )}
+
+      {/* Loading route indicator */}
+      {isLoadingRoute && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] bg-white dark:bg-gray-800 rounded-xl shadow-lg px-4 py-3 flex items-center gap-2">
+          <svg className="animate-spin w-5 h-5 text-primary-500" viewBox="0 0 24 24" fill="none">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+          </svg>
+          <span className="text-sm text-gray-600 dark:text-gray-300">Mencari rute...</span>
+        </div>
+      )}
+
+      {/* Route controller for fit bounds */}
+      <RouteController
+        routeCoordinates={routeCoordinates}
+        userLocation={userLocation}
+        routeDestination={routeDestination ?? null}
+      />
+
+      {/* Cafe markers with clustering - hide when routing is active */}
+      {!routeDestination && (
+        <MarkerClusterGroup
+          chunkedLoading
+          iconCreateFunction={createClusterCustomIcon}
+          maxClusterRadius={60}
+          spiderfyOnMaxZoom={true}
+          showCoverageOnHover={false}
+          zoomToBoundsOnClick={true}
+          disableClusteringAtZoom={17}
+        >
+          {cafes.map((cafe) => {
+            const isSelected = selectedCafe?.id === cafe.id;
+            return (
+              <Marker 
+                key={cafe.id} 
+                position={[cafe.lat, cafe.lon]} 
+                icon={isSelected ? selectedCoffeeIcon : coffeeIcon}
+                zIndexOffset={isSelected ? 1000 : 0}
+                ref={(marker) => setMarkerRef(cafe.id, marker)}
+                eventHandlers={{
+                  click: () => onCafeSelect(cafe),
+                }}
+              />
+            );
+          })}
+        </MarkerClusterGroup>
+      )}
+
+      {/* Only show selected cafe marker when routing is active */}
+      {routeDestination && selectedCafe && (
+        <Marker 
+          key={selectedCafe.id} 
+          position={[selectedCafe.lat, selectedCafe.lon]} 
+          icon={selectedCoffeeIcon}
+          zIndexOffset={1000}
+        />
+      )}
     </MapContainer>
   );
 }
