@@ -279,14 +279,16 @@ export default function CafeDetailPanel({
       });
   }, []);
 
-  // Effect to trigger geocoding for ALL cafes (reverse geocode gives more complete address)
+  // Effect to trigger geocoding only if cafe doesn't have address
   useEffect(() => {
     if (!cafe || !isOpen) {
       return;
     }
     
-    // Always fetch address via reverse geocoding for more complete results
-    fetchAddress(cafe.id, cafe.lat, cafe.lon);
+    // Only fetch via reverse geocoding if cafe doesn't have address
+    if (!cafe.address) {
+      fetchAddress(cafe.id, cafe.lat, cafe.lon);
+    }
   }, [cafe, isOpen, fetchAddress]);
 
   // Sync cafe photos
@@ -406,8 +408,8 @@ export default function CafeDetailPanel({
     ? calculateDistance(userLocation[0], userLocation[1], cafe.lat, cafe.lon)
     : null;
 
-  // Determine the address to display - prioritize geocoded address (more complete)
-  const displayAddress = geocodedAddress || cafe?.address;
+  // Determine the address to display - prioritize cafe's stored address first
+  const displayAddress = cafe?.address || geocodedAddress;
 
   const t = {
     id: {
@@ -709,7 +711,7 @@ export default function CafeDetailPanel({
                   </motion.div>
                 </motion.button>
                 
-                {/* Close button - Only visible on desktop/tablet */}
+                {/* Close button */}
                 <motion.button
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
@@ -718,7 +720,7 @@ export default function CafeDetailPanel({
                   whileTap={{ scale: 0.9 }}
                   onClick={onClose}
                   className={`
-                    hidden md:flex
+                    flex
                     p-2 rounded-full transition-colors
                     ${isDarkMode 
                       ? 'bg-gray-700 text-gray-400 hover:bg-gray-600 hover:text-white' 
