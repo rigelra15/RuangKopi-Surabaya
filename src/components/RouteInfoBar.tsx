@@ -46,7 +46,7 @@ export default function RouteInfoBar({
           exit={{ y: 100, opacity: 0 }}
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
           className={`
-            fixed bottom-24 left-4 right-4 z-[1001]
+            fixed bottom-6 left-4 right-4 z-[1001]
             md:left-auto md:right-4 md:w-96
             rounded-2xl shadow-xl overflow-hidden
             ${isDarkMode 
@@ -86,9 +86,29 @@ export default function RouteInfoBar({
                     {language === 'id' ? 'Tujuan' : 'Destination'}
                   </span>
                 </div>
-                <p className={`text-sm font-semibold truncate ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                  {cafeName}
-                </p>
+                {/* Scrolling text for long cafe names - using framer-motion like CafeDetailPanel */}
+                <div className="overflow-hidden">
+                  {cafeName.length > 20 ? (
+                    <motion.p 
+                      animate={{ x: ["0%", "-50%"] }} 
+                      transition={{ 
+                        repeat: Infinity, 
+                        ease: "linear", 
+                        duration: Math.max(cafeName.length * 0.3, 5)
+                      }}
+                      className={`
+                        text-sm font-semibold whitespace-nowrap inline-block
+                        ${isDarkMode ? 'text-white' : 'text-gray-900'}
+                      `}
+                    >
+                      {cafeName} &nbsp;&nbsp;&nbsp;•&nbsp;&nbsp;&nbsp; {cafeName} &nbsp;&nbsp;&nbsp;•&nbsp;&nbsp;&nbsp;
+                    </motion.p>
+                  ) : (
+                    <p className={`text-sm font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                      {cafeName}
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
 

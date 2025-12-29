@@ -62,3 +62,23 @@
 .map-control-btn:hover::before {
   @apply translate-x-[100%];
 }
+
+/* Marquee scrolling text animation */
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  display: inline-block;
+  padding-right: 50%;
+}
+
+.animate-marquee::after {
+  content: attr(data-text);
+  padding-left: 50%;
+}
