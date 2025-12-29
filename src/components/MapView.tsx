@@ -295,6 +295,7 @@ interface MapViewProps {
   showCafeDetail: boolean;
   routeDestination?: { lat: number; lon: number; name: string } | null;
   onRouteInfoChange?: (info: { distance: number; duration: number } | null) => void;
+  distanceFilter?: number | null; // in km
 }
 
 export default function MapView({ 
@@ -305,7 +306,8 @@ export default function MapView({
   onCafeSelect,
   showCafeDetail,
   routeDestination,
-  onRouteInfoChange
+  onRouteInfoChange,
+  distanceFilter
 }: MapViewProps) {
   // Route state
   const [routeCoordinates, setRouteCoordinates] = useState<[number, number][]>([]);
@@ -429,6 +431,20 @@ export default function MapView({
               weight: 2,
             }}
           />
+          {/* Distance filter range circle */}
+          {distanceFilter && !routeDestination && (
+            <Circle
+              center={userLocation}
+              radius={distanceFilter * 1000} // Convert km to meters
+              pathOptions={{
+                color: '#6F4E37', // Primary brown color
+                fillColor: '#6F4E37',
+                fillOpacity: 0.05,
+                weight: 2,
+                dashArray: '10, 10',
+              }}
+            />
+          )}
         </>
       )}
 

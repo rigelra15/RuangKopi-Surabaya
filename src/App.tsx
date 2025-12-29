@@ -241,6 +241,7 @@ function App() {
           showCafeDetail={showCafeDetail}
           routeDestination={routeDestination}
           onRouteInfoChange={setRouteInfo}
+          distanceFilter={distanceFilter}
         />
       </div>
 
@@ -345,6 +346,7 @@ function App() {
         onOpenAbout={() => setShowAboutModal(true)}
         onOpenStats={() => setShowStatsModal(true)}
         onOpenAddCafe={() => setShowAddCafeModal(true)}
+        isHidden={!!routeDestination && !!routeInfo}
       />
 
       {/* Route Info Bar - Shows when routing is active */}
