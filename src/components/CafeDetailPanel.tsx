@@ -18,6 +18,8 @@ interface CafeDetailPanelProps {
   language: 'id' | 'en';
   isOpen: boolean;
   onHeightChange?: (height: number) => void;
+  onShowRoute?: (cafe: Cafe) => void;
+  isShowingRoute?: boolean;
 }
 
 // Helper function to format cuisine string
@@ -203,6 +205,8 @@ export default function CafeDetailPanel({
   language,
   isOpen,
   onHeightChange,
+  onShowRoute,
+  isShowingRoute,
 }: CafeDetailPanelProps) {
   // Derive initial state from cafe prop
   const [isFav, setIsFav] = useState(() => cafe ? isFavorite(cafe.id) : false);
@@ -1269,25 +1273,50 @@ export default function CafeDetailPanel({
                 ${isDarkMode ? 'border-gray-700 bg-gray-900/95' : 'border-gray-200 bg-white/95'}
               `}
             >
-              {/* Primary actions */}
-              <div className={`grid gap-2 ${cafe.website || cafe.phone ? 'grid-cols-2' : 'grid-cols-1'}`}>
-                {/* Directions button */}
+              {/* Primary action - Route button (full width when available) */}
+              {userLocation && onShowRoute && (
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => onShowRoute(cafe)}
+                  className={`
+                    w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl
+                    font-medium transition-colors mb-2
+                    ${isShowingRoute
+                      ? 'bg-green-500 hover:bg-green-600 text-white'
+                      : 'bg-primary-500 hover:bg-primary-600 text-white'
+                    }
+                  `}
+                >
+                  <Icon icon={isShowingRoute ? "mdi:map-marker-path" : "mdi:routes"} className="w-5 h-5" />
+                  <span>
+                    {isShowingRoute 
+                      ? (language === 'id' ? 'Lihat Rute' : 'View Route')
+                      : (language === 'id' ? 'Tampilkan Rute di Peta' : 'Show Route on Map')
+                    }
+                  </span>
+                </motion.button>
+              )}
+
+              {/* Secondary actions row */}
+              <div className="grid grid-cols-2 gap-2">
+                {/* Google Maps button */}
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={handleGetDirections}
-                  className="
-                    flex items-center justify-center gap-2 py-3 px-4 rounded-xl
-                    bg-primary-500 hover:bg-primary-600 text-white
-                    font-medium transition-colors
-                  "
+                  className={`
+                    flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl
+                    text-sm font-medium transition-colors
+                    ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-800'}
+                  `}
                 >
-                  <Icon icon="mdi:directions" className="w-5 h-5" />
-                  {text.directions}
+                  <Icon icon="mdi:google-maps" className="w-4 h-4" />
+                  <span>Google Maps</span>
                 </motion.button>
 
-                {/* Website or call button - only show if exists */}
-                {cafe.website && (
+                {/* Website button */}
+                {cafe.website ? (
                   <motion.a
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
@@ -1295,65 +1324,68 @@ export default function CafeDetailPanel({
                     target="_blank"
                     rel="noopener noreferrer"
                     className={`
-                      flex items-center justify-center gap-2 py-3 px-4 rounded-xl
-                      font-medium transition-colors
-                      ${isDarkMode
-                        ? 'bg-gray-700 hover:bg-gray-600 text-white'
-                        : 'bg-gray-100 hover:bg-gray-200 text-gray-800'
-                      }
+                      flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl
+                      text-sm font-medium transition-colors
+                      ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-800'}
                     `}
                   >
-                    <Icon icon="mdi:web" className="w-5 h-5" />
+                    <Icon icon="mdi:web" className="w-4 h-4" />
                     {text.website}
                   </motion.a>
-                )}
-                
-                {!cafe.website && cafe.phone && (
+                ) : cafe.phone ? (
                   <motion.a
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     href={`tel:${cafe.phone}`}
                     className={`
-                      flex items-center justify-center gap-2 py-3 px-4 rounded-xl
-                      font-medium transition-colors
-                      ${isDarkMode
-                        ? 'bg-gray-700 hover:bg-gray-600 text-white'
-                        : 'bg-gray-100 hover:bg-gray-200 text-gray-800'
-                      }
+                      flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl
+                      text-sm font-medium transition-colors
+                      ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-800'}
                     `}
                   >
-                    <Icon icon="mdi:phone" className="w-5 h-5" />
+                    <Icon icon="mdi:phone" className="w-4 h-4" />
                     {text.call}
                   </motion.a>
-                )}
-              </div>
-
-              {/* Secondary actions */}
-              <div className="flex gap-2">
-                {/* Menu link */}
-                {cafe.menuUrl && (
+                ) : (
                   <motion.a
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    href={cafe.menuUrl}
+                    href={`https://www.google.com/maps/search/?api=1&query=${cafe.lat},${cafe.lon}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className={`
-                      flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl
+                      flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl
                       text-sm font-medium transition-colors
-                      ${isDarkMode
-                        ? 'bg-amber-500/20 hover:bg-amber-500/30 text-amber-400'
-                        : 'bg-amber-100 hover:bg-amber-200 text-amber-700'
-                      }
+                      ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-800'}
                     `}
                   >
-                    <Icon icon="mdi:silverware-fork-knife" className="w-4 h-4" />
-                    {text.menu}
+                    <Icon icon="mdi:share-variant" className="w-4 h-4" />
+                    {language === 'id' ? 'Bagikan' : 'Share'}
                   </motion.a>
                 )}
-
-
               </div>
+
+              {/* Menu link - separate row if exists */}
+              {cafe.menuUrl && (
+                <motion.a
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  href={cafe.menuUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`
+                    w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl mt-2
+                    text-sm font-medium transition-colors
+                    ${isDarkMode
+                      ? 'bg-amber-500/20 hover:bg-amber-500/30 text-amber-400'
+                      : 'bg-amber-100 hover:bg-amber-200 text-amber-700'
+                    }
+                  `}
+                >
+                  <Icon icon="mdi:silverware-fork-knife" className="w-4 h-4" />
+                  {text.menu}
+                </motion.a>
+              )}
 
 
             </motion.div>
