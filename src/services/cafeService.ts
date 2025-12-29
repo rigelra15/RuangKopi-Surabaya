@@ -301,43 +301,11 @@ function getSampleCafes(query: string = ''): Cafe[] {
 
 // Reverse geocode coordinates to address
 export async function reverseGeocode(lat: number, lon: number): Promise<string | null> {
-  // Try BigDataCloud first (free, supports CORS)
+  // Use our proxy API to avoid CORS issues with Nominatim
   try {
     const response = await fetchWithTimeout(
-      `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=id`,
+      `/api/geocode?type=reverse&lat=${lat}&lon=${lon}`,
       { method: 'GET' },
-      8000
-    );
-    
-    if (response.ok) {
-      const result = await response.json();
-      if (result) {
-        const parts = [
-          result.locality || result.city,
-          result.principalSubdivision,
-        ].filter(Boolean);
-        
-        if (parts.length > 0) {
-          return parts.join(', ');
-        }
-      }
-    }
-  } catch (error) {
-    console.warn('BigDataCloud geocoding failed, trying Nominatim:', error);
-  }
-
-  // Fallback to Nominatim (may fail due to CORS in production)
-  try {
-    const response = await fetchWithTimeout(
-      `https://nominatim.openstreetmap.org/reverse?` +
-      `lat=${lat}&lon=${lon}&format=json&addressdetails=1&zoom=18`,
-      { 
-        method: 'GET',
-        headers: {
-          'Accept-Language': 'id,en',
-          'User-Agent': 'RuangKopiSurabaya/1.0 (https://ruangkopisby.vercel.app)',
-        }
-      },
       10000
     );
     
@@ -377,16 +345,10 @@ export async function reverseGeocode(lat: number, lon: number): Promise<string |
 // Geocode a location name to coordinates
 export async function geocodeLocation(query: string): Promise<{ lat: number; lon: number; displayName?: string } | null> {
   try {
+    const searchQuery = query + ', Surabaya, Indonesia';
     const response = await fetchWithTimeout(
-      `https://nominatim.openstreetmap.org/search?` + 
-      `q=${encodeURIComponent(query + ', Surabaya, Indonesia')}&format=json&limit=1&` +
-      `viewbox=${SURABAYA_BOUNDS.west},${SURABAYA_BOUNDS.north},${SURABAYA_BOUNDS.east},${SURABAYA_BOUNDS.south}&bounded=1`,
-      { 
-        method: 'GET',
-        headers: {
-          'User-Agent': 'RuangKopiSurabaya/1.0 (https://ruangkopisby.vercel.app)',
-        }
-      },
+      `/api/geocode?type=search&q=${encodeURIComponent(searchQuery)}`,
+      { method: 'GET' },
       10000
     );
     
@@ -394,7 +356,7 @@ export async function geocodeLocation(query: string): Promise<{ lat: number; lon
     
     const results = await response.json();
     
-    if (results.length > 0) {
+    if (Array.isArray(results) && results.length > 0) {
       return {
         lat: parseFloat(results[0].lat),
         lon: parseFloat(results[0].lon),
