@@ -301,6 +301,32 @@ function getSampleCafes(query: string = ''): Cafe[] {
 
 // Reverse geocode coordinates to address
 export async function reverseGeocode(lat: number, lon: number): Promise<string | null> {
+  // Try BigDataCloud first (free, supports CORS)
+  try {
+    const response = await fetchWithTimeout(
+      `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=id`,
+      { method: 'GET' },
+      8000
+    );
+    
+    if (response.ok) {
+      const result = await response.json();
+      if (result) {
+        const parts = [
+          result.locality || result.city,
+          result.principalSubdivision,
+        ].filter(Boolean);
+        
+        if (parts.length > 0) {
+          return parts.join(', ');
+        }
+      }
+    }
+  } catch (error) {
+    console.warn('BigDataCloud geocoding failed, trying Nominatim:', error);
+  }
+
+  // Fallback to Nominatim (may fail due to CORS in production)
   try {
     const response = await fetchWithTimeout(
       `https://nominatim.openstreetmap.org/reverse?` +
@@ -309,6 +335,7 @@ export async function reverseGeocode(lat: number, lon: number): Promise<string |
         method: 'GET',
         headers: {
           'Accept-Language': 'id,en',
+          'User-Agent': 'RuangKopiSurabaya/1.0 (https://ruangkopisby.vercel.app)',
         }
       },
       10000
@@ -354,7 +381,12 @@ export async function geocodeLocation(query: string): Promise<{ lat: number; lon
       `https://nominatim.openstreetmap.org/search?` + 
       `q=${encodeURIComponent(query + ', Surabaya, Indonesia')}&format=json&limit=1&` +
       `viewbox=${SURABAYA_BOUNDS.west},${SURABAYA_BOUNDS.north},${SURABAYA_BOUNDS.east},${SURABAYA_BOUNDS.south}&bounded=1`,
-      { method: 'GET' },
+      { 
+        method: 'GET',
+        headers: {
+          'User-Agent': 'RuangKopiSurabaya/1.0 (https://ruangkopisby.vercel.app)',
+        }
+      },
       10000
     );
     
