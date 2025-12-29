@@ -229,6 +229,11 @@ export default function CafeDetailPanel({
   const [pendingPhotos, setPendingPhotos] = useState<File[]>([]); // Photos waiting for preview/confirm
   const [photoPreviewUrls, setPhotoPreviewUrls] = useState<string[]>([]); // Preview URLs for pending photos
   
+  // Photo URL input state
+  const [photoInputMode, setPhotoInputMode] = useState<'upload' | 'url'>('upload');
+  const [photoUrlInput, setPhotoUrlInput] = useState('');
+  const [isValidatingPhotoUrl, setIsValidatingPhotoUrl] = useState(false);
+  
   // Drag controls for bottom sheet swipe-to-close
   const dragControls = useDragControls();
 
@@ -370,6 +375,62 @@ export default function CafeDetailPanel({
       setUploadProgress({ current: 0, total: 0 });
     }
   }, [cafe, cafePhotos, language, pendingPhotos, handleCancelUpload]);
+
+  // Add photo via URL (no upload needed)
+  const handleAddPhotoUrl = useCallback(async () => {
+    const url = photoUrlInput.trim();
+    
+    if (!url || !cafe) return;
+    
+    // Basic URL validation
+    if (!url.match(/^https?:\/\/.+\..+/i)) {
+      setToastMessage(language === 'id' ? 'URL tidak valid' : 'Invalid URL');
+      setToastType('error');
+      setShowToast(true);
+      return;
+    }
+
+    // Check if URL already exists
+    if (cafePhotos.includes(url)) {
+      setToastMessage(language === 'id' ? 'Foto ini sudah ada di galeri' : 'This photo is already in gallery');
+      setToastType('warning');
+      setShowToast(true);
+      return;
+    }
+
+    setIsValidatingPhotoUrl(true);
+
+    try {
+      // Try to load image to validate it's a valid image URL
+      await new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = resolve;
+        img.onerror = reject;
+        img.src = url;
+      });
+
+      // Add to photos
+      const updatedPhotos = [...cafePhotos, url];
+      
+      // Update cafe in database
+      await updateCustomCafe(cafe.id, { photos: updatedPhotos });
+      
+      // Update local state
+      setCafePhotos(updatedPhotos);
+      setPhotoUrlInput('');
+      
+      // Show success toast
+      setToastMessage(language === 'id' ? 'Foto berhasil ditambahkan!' : 'Photo added successfully!');
+      setToastType('success');
+      setShowToast(true);
+    } catch {
+      setToastMessage(language === 'id' ? 'Gagal memuat gambar dari URL' : 'Failed to load image from URL');
+      setToastType('error');
+      setShowToast(true);
+    } finally {
+      setIsValidatingPhotoUrl(false);
+    }
+  }, [photoUrlInput, cafe, cafePhotos, language]);
 
   const handleToggleFavorite = () => {
     if (cafe) {
@@ -623,7 +684,7 @@ export default function CafeDetailPanel({
                   )}
                   
                   <div className="flex-1 min-w-0 overflow-hidden">
-                    {cafe.name.length > 20 ? (
+                    {cafe.name.length > 10 ? (
                       <div className="overflow-hidden">
                         <motion.h2 
                           animate={{ x: ["0%", "-50%"] }} 
@@ -743,35 +804,125 @@ export default function CafeDetailPanel({
                 transition={{ delay: 0.15 }}
                 className="px-4 pt-2 pb-2"
               >
-                {/* Gallery Header with Add Photo button */}
+                {/* Gallery Header */}
                 <div className="flex items-center justify-between mb-2">
                   <span className={`text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                     <Icon icon="mdi:image-multiple" className="w-4 h-4 inline mr-1" />
                     {language === 'id' ? 'Galeri Foto' : 'Photo Gallery'} 
                     {cafePhotos.length > 0 && ` (${cafePhotos.length})`}
                   </span>
-                  <label className={`
-                    flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium cursor-pointer transition-all
-                    ${pendingPhotos.length > 0 ? 'opacity-50 cursor-not-allowed' : ''}
-                    ${isDarkMode 
-                      ? 'bg-primary-500/20 text-primary-400 hover:bg-primary-500/30' 
-                      : 'bg-primary-100 text-primary-600 hover:bg-primary-200'
-                    }
-                  `}>
-                    <Icon icon="mdi:camera-plus" className="w-4 h-4" />
-                    {language === 'id' ? 'Tambah Foto' : 'Add Photo'}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      multiple
-                      className="hidden"
-                      onChange={(e) => {
-                        handleFileSelect(e.target.files);
-                        e.target.value = ''; // Reset input
-                      }}
-                      disabled={isUploadingPhotos || pendingPhotos.length > 0}
-                    />
-                  </label>
+                </div>
+
+                {/* Add Photo Tabs - Toggle between Upload and URL */}
+                <div className="mb-3">
+                  {/* Mode Toggle */}
+                  <div className="flex gap-1 mb-2">
+                    <button
+                      type="button"
+                      onClick={() => setPhotoInputMode('upload')}
+                      className={`
+                        flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-medium transition-colors
+                        ${photoInputMode === 'upload'
+                          ? 'bg-primary-500 text-white'
+                          : isDarkMode
+                            ? 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+                            : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                        }
+                      `}
+                    >
+                      <Icon icon="mdi:upload" className="w-3.5 h-3.5" />
+                      {language === 'id' ? 'Upload' : 'Upload'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPhotoInputMode('url')}
+                      className={`
+                        flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-medium transition-colors
+                        ${photoInputMode === 'url'
+                          ? 'bg-primary-500 text-white'
+                          : isDarkMode
+                            ? 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+                            : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                        }
+                      `}
+                    >
+                      <Icon icon="mdi:link-variant" className="w-3.5 h-3.5" />
+                      {language === 'id' ? 'Input URL' : 'Input URL'}
+                    </button>
+                  </div>
+
+                  {/* Upload Mode */}
+                  {photoInputMode === 'upload' && (
+                    <label className={`
+                      flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed cursor-pointer transition-all
+                      ${pendingPhotos.length > 0 || isUploadingPhotos ? 'opacity-50 cursor-not-allowed' : ''}
+                      ${isDarkMode 
+                        ? 'border-gray-700 hover:border-gray-600 bg-gray-800/50 hover:bg-gray-800' 
+                        : 'border-gray-300 hover:border-gray-400 bg-gray-100 hover:bg-gray-200'
+                      }
+                    `}>
+                      <Icon icon="mdi:camera-plus" className={`w-5 h-5 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`} />
+                      <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                        {language === 'id' ? 'Pilih atau seret foto' : 'Choose or drag photos'}
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        className="hidden"
+                        onChange={(e) => {
+                          handleFileSelect(e.target.files);
+                          e.target.value = ''; // Reset input
+                        }}
+                        disabled={isUploadingPhotos || pendingPhotos.length > 0}
+                      />
+                    </label>
+                  )}
+
+                  {/* URL Input Mode */}
+                  {photoInputMode === 'url' && (
+                    <div className="flex gap-2">
+                      <input
+                        type="url"
+                        value={photoUrlInput}
+                        onChange={(e) => setPhotoUrlInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleAddPhotoUrl();
+                          }
+                        }}
+                        placeholder={language === 'id' ? 'Paste URL gambar...' : 'Paste image URL...'}
+                        disabled={isValidatingPhotoUrl}
+                        className={`
+                          flex-1 px-3 py-2 rounded-xl border-2 text-sm transition-all
+                          ${isDarkMode 
+                            ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-primary-500' 
+                            : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:border-primary-500'
+                          }
+                          focus:outline-none focus:ring-2 focus:ring-primary-500/50
+                          disabled:opacity-50 disabled:cursor-not-allowed
+                        `}
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddPhotoUrl}
+                        disabled={isValidatingPhotoUrl || !photoUrlInput.trim()}
+                        className={`
+                          px-3 py-2 bg-primary-500 hover:bg-primary-400 text-white rounded-xl 
+                          text-sm font-medium transition-colors flex items-center gap-1.5
+                          disabled:opacity-50 disabled:cursor-not-allowed
+                        `}
+                      >
+                        {isValidatingPhotoUrl ? (
+                          <Icon icon="mdi:loading" className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Icon icon="mdi:plus" className="w-4 h-4" />
+                        )}
+                        {language === 'id' ? 'Tambah' : 'Add'}
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 {/* Photo Preview Section */}

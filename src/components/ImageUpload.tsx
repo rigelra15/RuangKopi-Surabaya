@@ -30,7 +30,14 @@ const translations = {
     uploadError: 'Gagal upload',
     remove: 'Hapus',
     notConfigured: 'Cloudinary belum dikonfigurasi',
-    configureInstructions: 'Tambahkan VITE_CLOUDINARY_CLOUD_NAME dan VITE_CLOUDINARY_UPLOAD_PRESET di file .env'
+    configureInstructions: 'Tambahkan VITE_CLOUDINARY_CLOUD_NAME dan VITE_CLOUDINARY_UPLOAD_PRESET di file .env',
+    // URL input
+    inputUrl: 'Input URL',
+    uploadFile: 'Upload File',
+    urlPlaceholder: 'Paste URL gambar di sini...',
+    addUrl: 'Tambah',
+    invalidUrl: 'URL tidak valid',
+    urlHint: 'Gunakan URL gambar dari internet (harus diawali http:// atau https://)'
   },
   en: {
     addPhoto: 'Add Photo',
@@ -44,7 +51,14 @@ const translations = {
     uploadError: 'Upload failed',
     remove: 'Remove',
     notConfigured: 'Cloudinary not configured',
-    configureInstructions: 'Add VITE_CLOUDINARY_CLOUD_NAME and VITE_CLOUDINARY_UPLOAD_PRESET to your .env file'
+    configureInstructions: 'Add VITE_CLOUDINARY_CLOUD_NAME and VITE_CLOUDINARY_UPLOAD_PRESET to your .env file',
+    // URL input
+    inputUrl: 'Input URL',
+    uploadFile: 'Upload File',
+    urlPlaceholder: 'Paste image URL here...',
+    addUrl: 'Add',
+    invalidUrl: 'Invalid URL',
+    urlHint: 'Use an image URL from the internet (must start with http:// or https://)'
   }
 };
 
@@ -59,6 +73,9 @@ export default function ImageUpload({
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState({ current: 0, total: 0 });
   const [error, setError] = useState<string | null>(null);
+  const [inputMode, setInputMode] = useState<'upload' | 'url'>('upload');
+  const [urlInput, setUrlInput] = useState('');
+  const [isValidatingUrl, setIsValidatingUrl] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const t = translations[language];
 
@@ -174,6 +191,51 @@ export default function ImageUpload({
     }
   }, [disabled, isUploading, configured]);
 
+  // Validate and add URL
+  const handleAddUrl = useCallback(async () => {
+    const url = urlInput.trim();
+    
+    if (!url) return;
+    
+    // Basic URL validation
+    if (!url.match(/^https?:\/\/.+\..+/i)) {
+      setError(t.invalidUrl);
+      return;
+    }
+
+    // Check remaining slots
+    if (images.length >= maxImages) {
+      setError(`${t.maxPhotos} ${maxImages} ${t.photos}`);
+      return;
+    }
+
+    // Check if URL already exists
+    if (images.includes(url)) {
+      setError(language === 'id' ? 'URL sudah ada di daftar' : 'URL already in list');
+      return;
+    }
+
+    setIsValidatingUrl(true);
+    setError(null);
+
+    try {
+      // Try to load image to validate it's a valid image URL
+      await new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = resolve;
+        img.onerror = reject;
+        img.src = url;
+      });
+
+      onImagesChange([...images, url]);
+      setUrlInput('');
+    } catch {
+      setError(language === 'id' ? 'Gagal memuat gambar dari URL' : 'Failed to load image from URL');
+    } finally {
+      setIsValidatingUrl(false);
+    }
+  }, [urlInput, images, maxImages, onImagesChange, t, language]);
+
   // Show configuration warning if not set up
   if (!configured) {
     return (
@@ -226,77 +288,162 @@ export default function ImageUpload({
         </div>
       )}
 
-      {/* Upload Area */}
+      {/* Mode Toggle & Upload/URL Area */}
       {images.length < maxImages && (
-        <div
-          onDragEnter={handleDragEnter}
-          onDragLeave={handleDragLeave}
-          onDragOver={handleDragOver}
-          onDrop={handleDrop}
-          onClick={openFilePicker}
-          className={`
-            relative border-2 border-dashed rounded-xl p-6 transition-all cursor-pointer
-            ${isDragging 
-              ? 'border-primary-500 bg-primary-500/10' 
-              : 'border-gray-700 hover:border-gray-600 bg-gray-800/50 hover:bg-gray-800'
-            }
-            ${disabled || isUploading ? 'opacity-50 cursor-not-allowed' : ''}
-          `}
-        >
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/jpeg,image/png,image/webp,image/gif"
-            multiple
-            onChange={handleFileSelect}
-            className="hidden"
-            disabled={disabled || isUploading}
-          />
+        <div className="space-y-3">
+          {/* Mode Toggle Tabs */}
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setInputMode('upload')}
+              className={`
+                flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-lg text-sm font-medium transition-colors
+                ${inputMode === 'upload'
+                  ? 'bg-primary-500 text-white'
+                  : 'bg-gray-700 text-gray-400 hover:bg-gray-600 hover:text-gray-300'
+                }
+              `}
+            >
+              <Icon icon="mdi:upload" className="w-4 h-4" />
+              {t.uploadFile}
+            </button>
+            <button
+              type="button"
+              onClick={() => setInputMode('url')}
+              className={`
+                flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-lg text-sm font-medium transition-colors
+                ${inputMode === 'url'
+                  ? 'bg-primary-500 text-white'
+                  : 'bg-gray-700 text-gray-400 hover:bg-gray-600 hover:text-gray-300'
+                }
+              `}
+            >
+              <Icon icon="mdi:link-variant" className="w-4 h-4" />
+              {t.inputUrl}
+            </button>
+          </div>
 
-          <div className="flex flex-col items-center text-center">
-            {isUploading ? (
-              <>
-                <div className="w-12 h-12 bg-primary-500/20 rounded-full flex items-center justify-center mb-3">
-                  <Icon icon="mdi:loading" className="w-6 h-6 text-primary-400 animate-spin" />
-                </div>
-                <p className="text-white font-medium">{t.uploading}</p>
-                <p className="text-gray-400 text-sm mt-1">
-                  {uploadProgress.current} / {uploadProgress.total}
-                </p>
-                {/* Progress bar */}
-                <div className="w-full max-w-xs h-2 bg-gray-700 rounded-full mt-3 overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ 
-                      width: `${(uploadProgress.current / uploadProgress.total) * 100}%` 
-                    }}
-                    className="h-full bg-primary-500 rounded-full"
-                  />
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="w-12 h-12 bg-gray-700 rounded-full flex items-center justify-center mb-3">
-                  <Icon icon="mdi:image-plus" className="w-6 h-6 text-gray-400" />
-                </div>
-                <p className="text-gray-400 text-sm">{t.dragDrop}</p>
-                <p className="text-gray-500 text-xs mt-1">{t.or}</p>
+          {/* Upload File Mode */}
+          {inputMode === 'upload' && (
+            <div
+              onDragEnter={handleDragEnter}
+              onDragLeave={handleDragLeave}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+              onClick={openFilePicker}
+              className={`
+                relative border-2 border-dashed rounded-xl p-6 transition-all cursor-pointer
+                ${isDragging 
+                  ? 'border-primary-500 bg-primary-500/10' 
+                  : 'border-gray-700 hover:border-gray-600 bg-gray-800/50 hover:bg-gray-800'
+                }
+                ${disabled || isUploading ? 'opacity-50 cursor-not-allowed' : ''}
+              `}
+            >
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                multiple
+                onChange={handleFileSelect}
+                className="hidden"
+                disabled={disabled || isUploading}
+              />
+
+              <div className="flex flex-col items-center text-center">
+                {isUploading ? (
+                  <>
+                    <div className="w-12 h-12 bg-primary-500/20 rounded-full flex items-center justify-center mb-3">
+                      <Icon icon="mdi:loading" className="w-6 h-6 text-primary-400 animate-spin" />
+                    </div>
+                    <p className="text-white font-medium">{t.uploading}</p>
+                    <p className="text-gray-400 text-sm mt-1">
+                      {uploadProgress.current} / {uploadProgress.total}
+                    </p>
+                    {/* Progress bar */}
+                    <div className="w-full max-w-xs h-2 bg-gray-700 rounded-full mt-3 overflow-hidden">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ 
+                          width: `${(uploadProgress.current / uploadProgress.total) * 100}%` 
+                        }}
+                        className="h-full bg-primary-500 rounded-full"
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="w-12 h-12 bg-gray-700 rounded-full flex items-center justify-center mb-3">
+                      <Icon icon="mdi:image-plus" className="w-6 h-6 text-gray-400" />
+                    </div>
+                    <p className="text-gray-400 text-sm">{t.dragDrop}</p>
+                    <p className="text-gray-500 text-xs mt-1">{t.or}</p>
+                    <button
+                      type="button"
+                      className="mt-2 px-4 py-2 bg-primary-500 hover:bg-primary-400 text-white text-sm rounded-lg transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openFilePicker();
+                      }}
+                    >
+                      {t.browse}
+                    </button>
+                    <p className="text-gray-500 text-xs mt-3">
+                      {t.maxPhotos} {maxImages} {t.photos} • JPG, PNG, WebP, GIF • Max 10MB
+                    </p>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* URL Input Mode */}
+          {inputMode === 'url' && (
+            <div className="space-y-3">
+              <div className="flex gap-2">
+                <input
+                  type="url"
+                  value={urlInput}
+                  onChange={(e) => setUrlInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleAddUrl();
+                    }
+                  }}
+                  placeholder={t.urlPlaceholder}
+                  disabled={disabled || isValidatingUrl}
+                  className={`
+                    flex-1 px-4 py-3 rounded-xl border-2 transition-all text-sm
+                    bg-gray-800 border-gray-700 text-white placeholder-gray-500 
+                    focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500
+                    disabled:opacity-50 disabled:cursor-not-allowed
+                  `}
+                />
                 <button
                   type="button"
-                  className="mt-2 px-4 py-2 bg-primary-500 hover:bg-primary-400 text-white text-sm rounded-lg transition-colors"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    openFilePicker();
-                  }}
+                  onClick={handleAddUrl}
+                  disabled={disabled || isValidatingUrl || !urlInput.trim()}
+                  className={`
+                    px-4 py-3 bg-primary-500 hover:bg-primary-400 text-white rounded-xl 
+                    font-medium transition-colors flex items-center gap-2
+                    disabled:opacity-50 disabled:cursor-not-allowed
+                  `}
                 >
-                  {t.browse}
+                  {isValidatingUrl ? (
+                    <Icon icon="mdi:loading" className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <Icon icon="mdi:plus" className="w-5 h-5" />
+                  )}
+                  {t.addUrl}
                 </button>
-                <p className="text-gray-500 text-xs mt-3">
-                  {t.maxPhotos} {maxImages} {t.photos} • JPG, PNG, WebP, GIF • Max 10MB
-                </p>
-              </>
-            )}
-          </div>
+              </div>
+              <p className="text-gray-500 text-xs">
+                <Icon icon="mdi:information" className="w-3 h-3 inline mr-1" />
+                {t.urlHint}
+              </p>
+            </div>
+          )}
         </div>
       )}
 
