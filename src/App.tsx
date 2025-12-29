@@ -12,6 +12,7 @@ import ChangelogModal from './components/ChangelogModal';
 import LocationPermissionModal from './components/LocationPermissionModal';
 import StatsModal from './components/StatsModal';
 import AddCafeModal from './components/AddCafeModal';
+import RouteInfoBar from './components/RouteInfoBar';
 import { type Cafe } from './services/cafeService';
 import { calculateDistance } from './services/favoritesService';
 import { getApprovedCafes, getCafeOverrides, type CustomCafe } from './services/customCafeService';
@@ -53,6 +54,8 @@ function App() {
   const [customCafes, setCustomCafes] = useState<CustomCafe[]>([]);
   const [hiddenCafeIds, setHiddenCafeIds] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState('');
+  const [routeDestination, setRouteDestination] = useState<{ lat: number; lon: number; name: string } | null>(null);
+  const [routeInfo, setRouteInfo] = useState<{ distance: number; duration: number } | null>(null);
 
   // Apply dark mode class to document
   useEffect(() => {
@@ -205,7 +208,25 @@ function App() {
     setSelectedCafe(null);
     // Also reset search query to clear the search box
     setSearchQuery('');
+    // Clear route when closing cafe detail
+    setRouteDestination(null);
   }, []);
+
+  const handleShowRoute = useCallback((cafe: Cafe) => {
+    if (userLocation) {
+      setRouteDestination({ lat: cafe.lat, lon: cafe.lon, name: cafe.name });
+      // Close cafe detail panel when showing route
+      setShowCafeDetail(false);
+    }
+  }, [userLocation]);
+
+  const handleClearRoute = useCallback(() => {
+    setRouteDestination(null);
+    // Reopen cafe detail panel when closing route
+    if (selectedCafe) {
+      setShowCafeDetail(true);
+    }
+  }, [selectedCafe]);
 
   return (
     <div className={`h-svh w-screen overflow-hidden ${isDarkMode ? 'dark' : ''}`}>
@@ -218,6 +239,8 @@ function App() {
           selectedCafe={selectedCafe}
           onCafeSelect={handleSelectCafe}
           showCafeDetail={showCafeDetail}
+          routeDestination={routeDestination}
+          onRouteInfoChange={setRouteInfo}
         />
       </div>
 
@@ -324,6 +347,17 @@ function App() {
         onOpenAddCafe={() => setShowAddCafeModal(true)}
       />
 
+      {/* Route Info Bar - Shows when routing is active */}
+      <RouteInfoBar
+        isVisible={!!routeDestination && !!routeInfo}
+        cafeName={routeDestination?.name || ''}
+        distance={routeInfo?.distance || 0}
+        duration={routeInfo?.duration || 0}
+        onClose={handleClearRoute}
+        isDarkMode={isDarkMode}
+        language={language}
+      />
+
       {/* Cafe count indicator - hidden on mobile (overlaps search), visible on desktop below title */}
       {distanceFilteredCafes.length > 0 && !showCafeDetail && (
         <div className="hidden sm:block absolute top-20 left-6 z-[1000]">
@@ -355,6 +389,8 @@ function App() {
         userLocation={userLocation}
         language={language}
         isOpen={showCafeDetail}
+        onShowRoute={handleShowRoute}
+        isShowingRoute={!!routeDestination}
       />
 
       {/* Favorites Panel */}

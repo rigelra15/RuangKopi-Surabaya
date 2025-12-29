@@ -1637,19 +1637,21 @@ function CafeFormModal({
     photos: cafe?.photos || [],
   });
 
-  // Opening hours per day
+  // Opening hours per day - supports multiple time slots per day
+  type TimeSlot = { open: string; close: string };
+  type DaySchedule = { isOpen: boolean; slots: TimeSlot[] };
   const [openingHoursData, setOpeningHoursData] = useState<{
-    [key: string]: { isOpen: boolean; open: string; close: string };
+    [key: string]: DaySchedule;
   }>(() => {
     // Default hours
-    const defaultData: { [key: string]: { isOpen: boolean; open: string; close: string } } = {
-      mon: { isOpen: true, open: "08:00", close: "22:00" },
-      tue: { isOpen: true, open: "08:00", close: "22:00" },
-      wed: { isOpen: true, open: "08:00", close: "22:00" },
-      thu: { isOpen: true, open: "08:00", close: "22:00" },
-      fri: { isOpen: true, open: "08:00", close: "22:00" },
-      sat: { isOpen: true, open: "08:00", close: "22:00" },
-      sun: { isOpen: true, open: "08:00", close: "22:00" },
+    const defaultData: { [key: string]: DaySchedule } = {
+      mon: { isOpen: true, slots: [{ open: "08:00", close: "22:00" }] },
+      tue: { isOpen: true, slots: [{ open: "08:00", close: "22:00" }] },
+      wed: { isOpen: true, slots: [{ open: "08:00", close: "22:00" }] },
+      thu: { isOpen: true, slots: [{ open: "08:00", close: "22:00" }] },
+      fri: { isOpen: true, slots: [{ open: "08:00", close: "22:00" }] },
+      sat: { isOpen: true, slots: [{ open: "08:00", close: "22:00" }] },
+      sun: { isOpen: true, slots: [{ open: "08:00", close: "22:00" }] },
     };
     
     // Parse existing opening hours if editing
@@ -1660,41 +1662,13 @@ function CafeFormModal({
       };
       const dayOrder = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
       
-      // Split by semicolon or comma
-      const parts = osmStr.split(/[;,]/).map(p => p.trim());
+      // Split by semicolon
+      const parts = osmStr.split(';').map(p => p.trim());
       
       for (const part of parts) {
-        // Match patterns like "Mo-Fr 08:00-22:00" or "Mo 08:00-22:00" or "Sa off"
-        const rangeMatch = part.match(/^([A-Z][a-z])-([A-Z][a-z])\s+(\d{1,2}:\d{2})-(\d{1,2}:\d{2})$/i);
-        const singleMatch = part.match(/^([A-Z][a-z])\s+(\d{1,2}:\d{2})-(\d{1,2}:\d{2})$/i);
+        // Match off pattern like "Mo off" or "Sa-Su off"
         const offMatch = part.match(/^([A-Z][a-z])(?:-([A-Z][a-z]))?\s+off$/i);
-        
-        if (rangeMatch) {
-          const startDay = rangeMatch[1];
-          const endDay = rangeMatch[2];
-          const openTime = rangeMatch[3];
-          const closeTime = rangeMatch[4];
-          
-          const startIdx = dayOrder.indexOf(startDay);
-          const endIdx = dayOrder.indexOf(endDay);
-          
-          if (startIdx !== -1 && endIdx !== -1) {
-            for (let i = startIdx; i <= endIdx; i++) {
-              const key = dayMap[dayOrder[i]];
-              if (key) {
-                defaultData[key] = { isOpen: true, open: openTime, close: closeTime };
-              }
-            }
-          }
-        } else if (singleMatch) {
-          const dayAbbr = singleMatch[1];
-          const openTime = singleMatch[2];
-          const closeTime = singleMatch[3];
-          const key = dayMap[dayAbbr];
-          if (key) {
-            defaultData[key] = { isOpen: true, open: openTime, close: closeTime };
-          }
-        } else if (offMatch) {
+        if (offMatch) {
           const startDay = offMatch[1];
           const endDay = offMatch[2] || startDay;
           
@@ -1705,7 +1679,40 @@ function CafeFormModal({
             for (let i = startIdx; i <= endIdx; i++) {
               const key = dayMap[dayOrder[i]];
               if (key) {
-                defaultData[key] = { ...defaultData[key], isOpen: false };
+                defaultData[key] = { isOpen: false, slots: [] };
+              }
+            }
+          }
+          continue;
+        }
+
+        // Match patterns like "Mo-Fr 08:00-22:00" or "Mo 06:00-10:00,16:00-21:00"
+        const dayRangeMatch = part.match(/^([A-Z][a-z])(?:-([A-Z][a-z]))?\s+(.+)$/i);
+        if (dayRangeMatch) {
+          const startDay = dayRangeMatch[1];
+          const endDay = dayRangeMatch[2] || startDay;
+          const hoursStr = dayRangeMatch[3];
+          
+          // Parse multiple time slots (comma separated)
+          const slots: TimeSlot[] = [];
+          const timeRanges = hoursStr.split(',').map(s => s.trim());
+          for (const timeRange of timeRanges) {
+            const timeMatch = timeRange.match(/^(\d{1,2}:\d{2})-(\d{1,2}:\d{2})$/);
+            if (timeMatch) {
+              slots.push({ open: timeMatch[1], close: timeMatch[2] });
+            }
+          }
+          
+          if (slots.length > 0) {
+            const startIdx = dayOrder.indexOf(startDay);
+            const endIdx = dayOrder.indexOf(endDay);
+            
+            if (startIdx !== -1 && endIdx !== -1) {
+              for (let i = startIdx; i <= endIdx; i++) {
+                const key = dayMap[dayOrder[i]];
+                if (key) {
+                  defaultData[key] = { isOpen: true, slots: slots.map(s => ({ ...s })) };
+                }
               }
             }
           }
@@ -1716,7 +1723,7 @@ function CafeFormModal({
     return defaultData;
   });
 
-  // Format opening hours to OSM format
+  // Format opening hours to OSM format (supports multiple time slots)
   const formatOpeningHoursToOSM = useCallback(() => {
     const dayMap: { [key: string]: string } = {
       mon: "Mo",
@@ -1729,6 +1736,19 @@ function CafeFormModal({
     };
     const dayOrder = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
     const parts: string[] = [];
+
+    // Helper to format slots for a day
+    const formatSlots = (slots: { open: string; close: string }[]) => {
+      return slots.map(slot => `${slot.open}-${slot.close}`).join(',');
+    };
+    
+    // Helper to compare slots between two days
+    const slotsEqual = (slots1: { open: string; close: string }[], slots2: { open: string; close: string }[]) => {
+      if (slots1.length !== slots2.length) return false;
+      return slots1.every((slot, idx) => 
+        slot.open === slots2[idx].open && slot.close === slots2[idx].close
+      );
+    };
 
     let i = 0;
     while (i < dayOrder.length) {
@@ -1745,11 +1765,7 @@ function CafeFormModal({
       while (j < dayOrder.length) {
         const nextDay = dayOrder[j];
         const nextData = openingHoursData[nextDay];
-        if (
-          nextData.isOpen &&
-          nextData.open === data.open &&
-          nextData.close === data.close
-        ) {
+        if (nextData.isOpen && slotsEqual(nextData.slots, data.slots)) {
           j++;
         } else {
           break;
@@ -1758,7 +1774,7 @@ function CafeFormModal({
 
       const startDay = dayMap[dayOrder[i]];
       const endDay = dayMap[dayOrder[j - 1]];
-      const hours = `${data.open}-${data.close}`;
+      const hours = formatSlots(data.slots);
 
       if (i === j - 1) {
         parts.push(`${startDay} ${hours}`);
@@ -2050,14 +2066,19 @@ function CafeFormModal({
                   type="button"
                   onClick={() => {
                     const firstDay = openingHoursData.mon;
+                    // Deep copy slots to avoid shared reference
+                    const copyDay = () => ({
+                      isOpen: firstDay.isOpen,
+                      slots: firstDay.slots.map(slot => ({ ...slot }))
+                    });
                     setOpeningHoursData({
                       mon: firstDay,
-                      tue: { ...firstDay },
-                      wed: { ...firstDay },
-                      thu: { ...firstDay },
-                      fri: { ...firstDay },
-                      sat: { ...firstDay },
-                      sun: { ...firstDay },
+                      tue: copyDay(),
+                      wed: copyDay(),
+                      thu: copyDay(),
+                      fri: copyDay(),
+                      sat: copyDay(),
+                      sun: copyDay(),
                     });
                   }}
                   className="mb-3 text-xs px-3 py-1.5 rounded-lg bg-gray-700 hover:bg-gray-600 text-gray-300 transition-colors"
@@ -2073,63 +2094,112 @@ function CafeFormModal({
                   {days.map((day, index) => (
                     <div
                       key={day.key}
-                      className={`flex items-center gap-2 px-3 py-2 ${
+                      className={`px-3 py-2 ${
                         index !== 0 ? "border-t border-gray-700" : ""
                       }`}
                     >
-                      <span className="w-10 text-sm font-medium text-gray-300">
-                        {day.label}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setOpeningHoursData((prev) => ({
-                            ...prev,
-                            [day.key]: {
-                              ...prev[day.key],
-                              isOpen: !prev[day.key].isOpen,
-                            },
-                          }));
-                        }}
-                        className={`px-2 py-1 rounded-lg text-xs font-medium transition-colors ${
-                          openingHoursData[day.key].isOpen
-                            ? "bg-green-500/20 text-green-400"
-                            : "bg-gray-700 text-gray-400"
-                        }`}
-                      >
-                        {openingHoursData[day.key].isOpen ? "Buka" : "Tutup"}
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <span className="w-10 text-sm font-medium text-gray-300">
+                          {day.label}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setOpeningHoursData((prev) => ({
+                              ...prev,
+                              [day.key]: {
+                                ...prev[day.key],
+                                isOpen: !prev[day.key].isOpen,
+                              },
+                            }));
+                          }}
+                          className={`px-2 py-1 rounded-lg text-xs font-medium transition-colors ${
+                            openingHoursData[day.key].isOpen
+                              ? "bg-green-500/20 text-green-400"
+                              : "bg-gray-700 text-gray-400"
+                          }`}
+                        >
+                          {openingHoursData[day.key].isOpen ? "Buka" : "Tutup"}
+                        </button>
+                        
+                        {/* Add slot button */}
+                        {openingHoursData[day.key].isOpen && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setOpeningHoursData((prev) => ({
+                                ...prev,
+                                [day.key]: {
+                                  ...prev[day.key],
+                                  slots: [...prev[day.key].slots, { open: "12:00", close: "18:00" }]
+                                }
+                              }));
+                            }}
+                            className="px-1.5 py-0.5 rounded text-xs bg-primary-600/30 text-primary-400 hover:bg-primary-600/50 transition-colors"
+                            title="Tambah jam"
+                          >
+                            <Icon icon="mdi:plus" className="w-3 h-3" />
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Time slots */}
                       {openingHoursData[day.key].isOpen && (
-                        <div className="flex items-center gap-1 ml-auto">
-                          <input
-                            type="time"
-                            value={openingHoursData[day.key].open}
-                            onChange={(e) => {
-                              setOpeningHoursData((prev) => ({
-                                ...prev,
-                                [day.key]: {
-                                  ...prev[day.key],
-                                  open: e.target.value,
-                                },
-                              }));
-                            }}
-                            className="px-2 py-1 rounded-lg text-xs bg-gray-700 border border-gray-600 text-white focus:outline-none focus:ring-1 focus:ring-primary-500"
-                          />
-                          <span className="text-xs text-gray-500">-</span>
-                          <input
-                            type="time"
-                            value={openingHoursData[day.key].close}
-                            onChange={(e) => {
-                              setOpeningHoursData((prev) => ({
-                                ...prev,
-                                [day.key]: {
-                                  ...prev[day.key],
-                                  close: e.target.value,
-                                },
-                              }));
-                            }}
-                            className="px-2 py-1 rounded-lg text-xs bg-gray-700 border border-gray-600 text-white focus:outline-none focus:ring-1 focus:ring-primary-500"
-                          />
+                        <div className="mt-1.5 ml-12 space-y-1">
+                          {openingHoursData[day.key].slots.map((slot, slotIndex) => (
+                            <div key={slotIndex} className="flex items-center gap-1">
+                              <input
+                                type="time"
+                                value={slot.open}
+                                onChange={(e) => {
+                                  setOpeningHoursData((prev) => {
+                                    const newSlots = [...prev[day.key].slots];
+                                    newSlots[slotIndex] = { ...newSlots[slotIndex], open: e.target.value };
+                                    return {
+                                      ...prev,
+                                      [day.key]: { ...prev[day.key], slots: newSlots }
+                                    };
+                                  });
+                                }}
+                                className="px-2 py-1 rounded-lg text-xs bg-gray-700 border border-gray-600 text-white focus:outline-none focus:ring-1 focus:ring-primary-500"
+                              />
+                              <span className="text-xs text-gray-500">-</span>
+                              <input
+                                type="time"
+                                value={slot.close}
+                                onChange={(e) => {
+                                  setOpeningHoursData((prev) => {
+                                    const newSlots = [...prev[day.key].slots];
+                                    newSlots[slotIndex] = { ...newSlots[slotIndex], close: e.target.value };
+                                    return {
+                                      ...prev,
+                                      [day.key]: { ...prev[day.key], slots: newSlots }
+                                    };
+                                  });
+                                }}
+                                className="px-2 py-1 rounded-lg text-xs bg-gray-700 border border-gray-600 text-white focus:outline-none focus:ring-1 focus:ring-primary-500"
+                              />
+                              {/* Remove slot button - only show if more than 1 slot */}
+                              {openingHoursData[day.key].slots.length > 1 && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setOpeningHoursData((prev) => ({
+                                      ...prev,
+                                      [day.key]: {
+                                        ...prev[day.key],
+                                        slots: prev[day.key].slots.filter((_, i) => i !== slotIndex)
+                                      }
+                                    }));
+                                  }}
+                                  className="p-0.5 rounded text-red-400 hover:bg-red-500/20 transition-colors"
+                                  title="Hapus jam"
+                                >
+                                  <Icon icon="mdi:close" className="w-3 h-3" />
+                                </button>
+                              )}
+                            </div>
+                          ))}
                         </div>
                       )}
                     </div>
@@ -2147,11 +2217,39 @@ function CafeFormModal({
                 <input
                   type="text"
                   value={formData.address}
-                  readOnly
-                  placeholder="Alamat akan terisi otomatis setelah memilih lokasi..."
-                  className={`${inputClass} bg-gray-900 cursor-not-allowed`}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      address: e.target.value,
+                    }))
+                  }
+                  placeholder="Masukkan alamat atau klik tombol di bawah untuk ambil otomatis"
+                  className={inputClass}
                 />
-                <p className="text-gray-500 text-xs mt-1">Alamat diambil otomatis dari koordinat yang dipilih</p>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setIsGettingLocation(true);
+                    try {
+                      const address = await reverseGeocode(formData.lat, formData.lon);
+                      if (address) {
+                        setFormData((prev) => ({ ...prev, address }));
+                      }
+                    } catch (error) {
+                      console.error("Error getting address:", error);
+                    } finally {
+                      setIsGettingLocation(false);
+                    }
+                  }}
+                  disabled={isGettingLocation}
+                  className="mt-2 text-xs px-3 py-1.5 rounded-lg bg-gray-700 hover:bg-gray-600 text-gray-300 transition-colors flex items-center gap-1 disabled:opacity-50"
+                >
+                  <Icon
+                    icon={isGettingLocation ? "mdi:loading" : "mdi:map-search"}
+                    className={`w-3 h-3 ${isGettingLocation ? "animate-spin" : ""}`}
+                  />
+                  Ambil Alamat dari Koordinat
+                </button>
               </div>
 
               {/* Action buttons */}
