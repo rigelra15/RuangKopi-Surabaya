@@ -10,6 +10,7 @@ interface MapControlsProps {
   onOpenAbout: () => void;
   onOpenStats: () => void;
   onOpenAddCafe: () => void;
+  isHidden?: boolean;
 }
 
 export default function MapControls({
@@ -21,6 +22,7 @@ export default function MapControls({
   onOpenAbout,
   onOpenStats,
   onOpenAddCafe,
+  isHidden = false,
 }: MapControlsProps) {
   const [hoveredButton, setHoveredButton] = useState<string | null>(null);
 
@@ -51,7 +53,11 @@ export default function MapControls({
   `;
 
   return (
-    <div className="absolute bottom-6 sm:bottom-8 left-1/2 transform -translate-x-1/2 z-[1000]">
+    <div className={`
+      absolute bottom-6 sm:bottom-8 left-1/2 transform -translate-x-1/2 z-[1000]
+      transition-all duration-300 ease-in-out
+      ${isHidden ? 'translate-y-24 opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'}
+    `}>
       <div className="flex items-center gap-2 sm:gap-3">
         {/* Stats Button */}
         <button
