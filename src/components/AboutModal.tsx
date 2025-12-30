@@ -1,14 +1,11 @@
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Icon } from '@iconify/react';
-import { getVersionInfo } from '../services/versionService';
+import { motion, AnimatePresence } from "framer-motion";
+import { Icon } from "@iconify/react";
 
 interface AboutModalProps {
   isDarkMode: boolean;
-  language: 'id' | 'en';
+  language: "id" | "en";
   isOpen: boolean;
   onClose: () => void;
-  onOpenChangelog: () => void;
 }
 
 export default function AboutModal({
@@ -16,85 +13,62 @@ export default function AboutModal({
   language,
   isOpen,
   onClose,
-  onOpenChangelog,
 }: AboutModalProps) {
-  const [version, setVersion] = useState('1.0.0');
-  const [commitCount, setCommitCount] = useState(0);
-  const [isLoadingVersion, setIsLoadingVersion] = useState(false);
-
-  useEffect(() => {
-    if (isOpen) {
-      // Fetch version info
-      getVersionInfo().then((info) => {
-        setVersion(info.version);
-        setCommitCount(info.commitCount);
-        setIsLoadingVersion(false);
-      }).catch(() => {
-        setIsLoadingVersion(false);
-      });
-    }
-  }, [isOpen]);
-
-  const handleOpenChangelog = () => {
-    onClose();
-    setTimeout(onOpenChangelog, 350);
-  };
-
   const content = {
     id: {
-      title: 'Tentang RuangKopi',
-      version: 'Versi',
-      commits: 'commit',
-      description: 'Aplikasi peta interaktif untuk menemukan cafe-cafe terbaik di Surabaya. Dibangun dengan React, TypeScript, dan Leaflet.',
-      features: 'Fitur',
+      title: "Tentang RuangKopi",
+      tagline: "Temukan cafe favoritmu",
+      description:
+        "Aplikasi peta interaktif untuk menemukan cafe-cafe terbaik di Surabaya. Dibangun dengan React, TypeScript, dan Leaflet.",
+      features: "Fitur",
       featureList: [
-        'Peta interaktif dengan data real-time dari OpenStreetMap',
-        'Filter cafe berdasarkan jarak dari lokasi Anda',
-        'Simpan cafe favorit',
-        'Dukungan dark mode dan multi-bahasa',
+        "Peta interaktif dengan data real-time dari OpenStreetMap",
+        "Filter cafe berdasarkan jarak dari lokasi Anda",
+        "Simpan cafe favorit",
+        "Dukungan dark mode dan multi-bahasa",
       ],
-      techStack: 'Teknologi',
-      contribute: 'Kontribusi',
-      contributeText: 'Tertarik untuk berkontribusi?',
-      githubButton: 'Lihat di GitHub',
-      dataSource: 'Sumber Data',
-      dataSourceText: 'Data cafe dikurasi dan dikelola secara manual melalui sistem backend khusus.',
-      changelog: 'Lihat Changelog',
-      credit: 'Dibuat oleh',
-      close: 'Tutup',
+      techStack: "Teknologi",
+      contribute: "Kontribusi",
+      contributeText: "Tertarik untuk berkontribusi?",
+      githubButton: "Lihat di GitHub",
+      dataSource: "Sumber Data",
+      dataSourceText:
+        "Data cafe dikurasi dan dikelola secara manual melalui sistem backend khusus.",
+      credit: "Dibuat oleh",
+      close: "Tutup",
     },
     en: {
-      title: 'About RuangKopi',
-      version: 'Version',
-      commits: 'commits',
-      description: 'An interactive map app to find the best cafes in Surabaya. Built with React, TypeScript, and Leaflet.',
-      features: 'Features',
+      title: "About RuangKopi",
+      tagline: "Find your perfect cafe",
+      description:
+        "An interactive map app to find the best cafes in Surabaya. Built with React, TypeScript, and Leaflet.",
+      features: "Features",
       featureList: [
-        'Interactive map with real-time data from OpenStreetMap',
-        'Filter cafes by distance from your location',
-        'Save favorite cafes',
-        'Dark mode and multi-language support',
+        "Interactive map with real-time data from OpenStreetMap",
+        "Filter cafes by distance from your location",
+        "Save favorite cafes",
+        "Dark mode and multi-language support",
       ],
-      techStack: 'Tech Stack',
-      contribute: 'Contribute',
-      contributeText: 'Interested in contributing?',
-      githubButton: 'View on GitHub',
-      dataSource: 'Data Source',
-      dataSourceText: 'Cafe data is curated and managed manually through a custom backend system.',
-      changelog: 'View Changelog',
-      credit: 'Created by',
-      close: 'Close',
+      techStack: "Tech Stack",
+      contribute: "Contribute",
+      contributeText: "Interested in contributing?",
+      githubButton: "View on GitHub",
+      dataSource: "Data Source",
+      dataSourceText:
+        "Cafe data is curated and managed manually through a custom backend system.",
+      credit: "Created by",
+      close: "Close",
     },
   };
 
   const t = content[language];
 
   const techList = [
-    { name: 'React 19', icon: 'mdi:react' },
-    { name: 'TypeScript', icon: 'mdi:language-typescript' },
-    { name: 'Vite', icon: 'simple-icons:vite' },
-    { name: 'Leaflet', icon: 'simple-icons:leaflet' },
-    { name: 'TailwindCSS', icon: 'mdi:tailwind' },
+    { name: "React 19", icon: "mdi:react" },
+    { name: "TypeScript", icon: "mdi:language-typescript" },
+    { name: "Vite", icon: "simple-icons:vite" },
+    { name: "Leaflet", icon: "simple-icons:leaflet" },
+    { name: "TailwindCSS", icon: "mdi:tailwind" },
   ];
 
   // Animation variants
@@ -105,26 +79,26 @@ export default function AboutModal({
   };
 
   const modalVariants = {
-    hidden: { 
-      opacity: 0, 
-      scale: 0.9, 
+    hidden: {
+      opacity: 0,
+      scale: 0.9,
       y: 20,
     },
-    visible: { 
-      opacity: 1, 
-      scale: 1, 
+    visible: {
+      opacity: 1,
+      scale: 1,
       y: 0,
       transition: {
-        type: 'spring' as const,
+        type: "spring" as const,
         stiffness: 300,
         damping: 25,
-      }
+      },
     },
-    exit: { 
-      opacity: 0, 
-      scale: 0.95, 
+    exit: {
+      opacity: 0,
+      scale: 0.95,
       y: 10,
-      transition: { duration: 0.2 }
+      transition: { duration: 0.2 },
     },
   };
 
@@ -134,11 +108,11 @@ export default function AboutModal({
       opacity: 1,
       y: 0,
       transition: {
-        type: 'spring' as const,
+        type: "spring" as const,
         stiffness: 300,
         damping: 25,
         delay: i * 0.05,
-      }
+      },
     }),
   };
 
@@ -148,11 +122,11 @@ export default function AboutModal({
       opacity: 1,
       scale: 1,
       transition: {
-        type: 'spring' as const,
+        type: "spring" as const,
         stiffness: 300,
         damping: 25,
         delay: 0.3 + i * 0.05,
-      }
+      },
     }),
   };
 
@@ -168,7 +142,7 @@ export default function AboutModal({
             exit="exit"
             className={`
               absolute inset-0 backdrop-blur-[1px]
-              ${isDarkMode ? 'bg-black/60' : 'bg-black/40'}
+              ${isDarkMode ? "bg-black/60" : "bg-black/40"}
             `}
             onClick={onClose}
           />
@@ -183,9 +157,10 @@ export default function AboutModal({
               relative w-full max-w-lg mx-auto max-h-[90vh] overflow-y-auto
               rounded-3xl
               shadow-2xl
-              ${isDarkMode
-                ? 'bg-gray-900 border border-gray-700/50'
-                : 'bg-white border border-gray-200/50'
+              ${
+                isDarkMode
+                  ? "bg-gray-900 border border-gray-700/50"
+                  : "bg-white border border-gray-200/50"
               }
             `}
           >
@@ -193,9 +168,10 @@ export default function AboutModal({
             <div
               className={`
                 sticky top-0 px-6 py-5 border-b z-10
-                ${isDarkMode
-                  ? 'bg-gray-900 border-gray-800'
-                  : 'bg-white border-gray-100'
+                ${
+                  isDarkMode
+                    ? "bg-gray-900 border-gray-800"
+                    : "bg-white border-gray-100"
                 }
               `}
             >
@@ -204,10 +180,10 @@ export default function AboutModal({
                   <motion.div
                     initial={{ scale: 0, rotate: -180 }}
                     animate={{ scale: 1, rotate: 0 }}
-                    transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+                    transition={{ type: "spring", stiffness: 200, damping: 15 }}
                     className={`
                       p-2 rounded-xl
-                      ${isDarkMode ? 'bg-primary-600' : 'bg-primary-500'}
+                      ${isDarkMode ? "bg-primary-600" : "bg-primary-500"}
                     `}
                   >
                     <Icon icon="mdi:coffee" className="w-6 h-6 text-white" />
@@ -216,31 +192,12 @@ export default function AboutModal({
                     <h2
                       className={`
                         text-lg font-bold
-                        ${isDarkMode ? 'text-white' : 'text-gray-900'}
+                        ${isDarkMode ? "text-white" : "text-gray-900"}
                       `}
                     >
                       {t.title}
                     </h2>
-                    <div className="flex items-center gap-2">
-                      {isLoadingVersion ? (
-                        <motion.div
-                          animate={{ rotate: 360 }}
-                          transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
-                        >
-                          <Icon icon="mdi:loading" className="w-3 h-3 text-gray-500" />
-                        </motion.div>
-                      ) : (
-                        <>
-                          <span className="text-xs text-gray-500">
-                            {t.version} {version}
-                          </span>
-                          <span className={`text-xs ${isDarkMode ? 'text-gray-600' : 'text-gray-300'}`}>•</span>
-                          <span className="text-xs text-gray-500">
-                            {commitCount} {t.commits}
-                          </span>
-                        </>
-                      )}
-                    </div>
+                    <span className="text-xs text-gray-500">{t.tagline}</span>
                   </div>
                 </div>
                 <motion.button
@@ -249,9 +206,10 @@ export default function AboutModal({
                   onClick={onClose}
                   className={`
                     p-2 rounded-xl transition-colors
-                    ${isDarkMode
-                      ? 'hover:bg-gray-800 text-gray-400'
-                      : 'hover:bg-gray-100 text-gray-500'
+                    ${
+                      isDarkMode
+                        ? "hover:bg-gray-800 text-gray-400"
+                        : "hover:bg-gray-100 text-gray-500"
                     }
                   `}
                 >
@@ -270,70 +228,11 @@ export default function AboutModal({
                 animate="visible"
                 className={`
                   text-sm leading-relaxed
-                  ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}
+                  ${isDarkMode ? "text-gray-400" : "text-gray-600"}
                 `}
               >
                 {t.description}
               </motion.p>
-
-              <motion.button
-                custom={1}
-                variants={itemVariants}
-                initial="hidden"
-                animate="visible"
-                whileHover={{ scale: 1.02, x: 4 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={handleOpenChangelog}
-                className={`
-                  w-full p-4 rounded-xl border transition-colors
-                  flex items-center justify-between group
-                  ${isDarkMode
-                    ? 'bg-primary-900/20 border-primary-800/50 hover:bg-primary-900/30'
-                    : 'bg-primary-50 border-primary-100 hover:bg-primary-100'
-                  }
-                `}
-              >
-                <div className="flex items-center gap-3">
-                  <div
-                    className={`
-                      p-2 rounded-lg
-                      ${isDarkMode ? 'bg-primary-600' : 'bg-primary-500'}
-                    `}
-                  >
-                    <Icon icon="mdi:history" className="w-5 h-5 text-white" />
-                  </div>
-                  <div className="text-left">
-                    <p
-                      className={`
-                        text-sm font-semibold
-                        ${isDarkMode ? 'text-white' : 'text-gray-900'}
-                      `}
-                    >
-                      {t.changelog}
-                    </p>
-                    <p
-                      className={`
-                        text-xs
-                        ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}
-                      `}
-                    >
-                      {language === 'id' ? 'Lihat riwayat perubahan aplikasi' : 'See app change history'}
-                    </p>
-                  </div>
-                </div>
-                <motion.div
-                  animate={{ x: [0, 4, 0] }}
-                  transition={{ repeat: Infinity, duration: 1.5, ease: 'easeInOut' }}
-                >
-                  <Icon 
-                    icon="mdi:chevron-right" 
-                    className={`
-                      w-5 h-5
-                      ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}
-                    `} 
-                  />
-                </motion.div>
-              </motion.button>
 
               {/* Features */}
               <motion.div
@@ -345,7 +244,7 @@ export default function AboutModal({
                 <h3
                   className={`
                     text-sm font-semibold mb-3 flex items-center gap-2
-                    ${isDarkMode ? 'text-white' : 'text-gray-900'}
+                    ${isDarkMode ? "text-white" : "text-gray-900"}
                   `}
                 >
                   <Icon icon="mdi:star" className="w-4 h-4 text-primary-500" />
@@ -361,10 +260,13 @@ export default function AboutModal({
                       transition={{ delay: 0.2 + index * 0.05 }}
                       className={`
                         flex items-start gap-2 text-sm
-                        ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}
+                        ${isDarkMode ? "text-gray-400" : "text-gray-600"}
                       `}
                     >
-                      <Icon icon="mdi:check-circle" className="w-4 h-4 text-primary-500 mt-0.5 flex-shrink-0" />
+                      <Icon
+                        icon="mdi:check-circle"
+                        className="w-4 h-4 text-primary-500 mt-0.5 flex-shrink-0"
+                      />
                       {feature}
                     </motion.li>
                   ))}
@@ -381,10 +283,13 @@ export default function AboutModal({
                 <h3
                   className={`
                     text-sm font-semibold mb-3 flex items-center gap-2
-                    ${isDarkMode ? 'text-white' : 'text-gray-900'}
+                    ${isDarkMode ? "text-white" : "text-gray-900"}
                   `}
                 >
-                  <Icon icon="mdi:code-tags" className="w-4 h-4 text-primary-500" />
+                  <Icon
+                    icon="mdi:code-tags"
+                    className="w-4 h-4 text-primary-500"
+                  />
                   {t.techStack}
                 </h3>
                 <div className="flex flex-wrap gap-2">
@@ -398,9 +303,10 @@ export default function AboutModal({
                       whileHover={{ scale: 1.1 }}
                       className={`
                         inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium cursor-default
-                        ${isDarkMode
-                          ? 'bg-gray-800 text-gray-300'
-                          : 'bg-gray-100 text-gray-700'
+                        ${
+                          isDarkMode
+                            ? "bg-gray-800 text-gray-300"
+                            : "bg-gray-100 text-gray-700"
                         }
                       `}
                     >
@@ -419,22 +325,25 @@ export default function AboutModal({
                 animate="visible"
                 className={`
                   p-4 rounded-xl
-                  ${isDarkMode ? 'bg-gray-800/50' : 'bg-gray-50'}
+                  ${isDarkMode ? "bg-gray-800/50" : "bg-gray-50"}
                 `}
               >
                 <h3
                   className={`
                     text-sm font-semibold mb-2 flex items-center gap-2
-                    ${isDarkMode ? 'text-white' : 'text-gray-900'}
+                    ${isDarkMode ? "text-white" : "text-gray-900"}
                   `}
                 >
-                  <Icon icon="mdi:database" className="w-4 h-4 text-primary-500" />
+                  <Icon
+                    icon="mdi:database"
+                    className="w-4 h-4 text-primary-500"
+                  />
                   {t.dataSource}
                 </h3>
                 <p
                   className={`
                     text-xs
-                    ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}
+                    ${isDarkMode ? "text-gray-400" : "text-gray-600"}
                   `}
                 >
                   {t.dataSourceText}
@@ -449,25 +358,29 @@ export default function AboutModal({
                 animate="visible"
                 className={`
                   p-4 rounded-xl border
-                  ${isDarkMode
-                    ? 'bg-primary-900/20 border-primary-800/50'
-                    : 'bg-primary-50 border-primary-100'
+                  ${
+                    isDarkMode
+                      ? "bg-primary-900/20 border-primary-800/50"
+                      : "bg-primary-50 border-primary-100"
                   }
                 `}
               >
                 <h3
                   className={`
                     text-sm font-semibold mb-2 flex items-center gap-2
-                    ${isDarkMode ? 'text-white' : 'text-gray-900'}
+                    ${isDarkMode ? "text-white" : "text-gray-900"}
                   `}
                 >
-                  <Icon icon="mdi:source-branch" className="w-4 h-4 text-primary-500" />
+                  <Icon
+                    icon="mdi:source-branch"
+                    className="w-4 h-4 text-primary-500"
+                  />
                   {t.contribute}
                 </h3>
                 <p
                   className={`
                     text-xs mb-3
-                    ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}
+                    ${isDarkMode ? "text-gray-400" : "text-gray-600"}
                   `}
                 >
                   {t.contributeText}
@@ -491,7 +404,7 @@ export default function AboutModal({
               </motion.div>
 
               {/* Credit */}
-              <motion.div 
+              <motion.div
                 custom={6}
                 variants={itemVariants}
                 initial="hidden"
@@ -501,17 +414,21 @@ export default function AboutModal({
                 <p
                   className={`
                     text-xs
-                    ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}
+                    ${isDarkMode ? "text-gray-500" : "text-gray-400"}
                   `}
                 >
-                  {t.credit}{' '}
-                  <a 
+                  {t.credit}{" "}
+                  <a
                     href="https://github.com/rigelra15"
                     target="_blank"
                     rel="noopener noreferrer"
                     className={`
                       hover:underline transition-colors
-                      ${isDarkMode ? 'text-primary-400 hover:text-primary-300' : 'text-primary-600 hover:text-primary-500'}
+                      ${
+                        isDarkMode
+                          ? "text-primary-400 hover:text-primary-300"
+                          : "text-primary-600 hover:text-primary-500"
+                      }
                     `}
                   >
                     Rigel Ramadhani Waloni
@@ -524,9 +441,10 @@ export default function AboutModal({
             <div
               className={`
                 sticky bottom-0 px-6 py-4 border-t z-10
-                ${isDarkMode
-                  ? 'bg-gray-900 border-gray-800'
-                  : 'bg-white border-gray-100'
+                ${
+                  isDarkMode
+                    ? "bg-gray-900 border-gray-800"
+                    : "bg-white border-gray-100"
                 }
               `}
             >
@@ -537,9 +455,10 @@ export default function AboutModal({
                 className={`
                   w-full py-2.5 px-4 rounded-xl
                   font-medium transition-colors
-                  ${isDarkMode
-                    ? 'bg-gray-800 hover:bg-gray-700 text-white'
-                    : 'bg-gray-100 hover:bg-gray-200 text-gray-900'
+                  ${
+                    isDarkMode
+                      ? "bg-gray-800 hover:bg-gray-700 text-white"
+                      : "bg-gray-100 hover:bg-gray-200 text-gray-900"
                   }
                 `}
               >
