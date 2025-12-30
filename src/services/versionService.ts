@@ -2,6 +2,10 @@
 const GITHUB_OWNER = 'rigelra15';
 const GITHUB_REPO = 'RuangKopi-Surabaya';
 
+// localStorage keys
+const CACHE_KEY = 'ruangkopi_version_cache';
+const CACHE_TIMESTAMP_KEY = 'ruangkopi_version_cache_timestamp';
+
 export interface CommitInfo {
   sha: string;
   message: string;
@@ -17,15 +21,62 @@ export interface VersionInfo {
   commits: CommitInfo[];
 }
 
-// Cache for version info
+// In-memory cache for version info
 let cachedVersionInfo: VersionInfo | null = null;
 let cacheTimestamp: number = 0;
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+// Cache duration: 24 hours (to avoid GitHub API rate limiting)
+const CACHE_DURATION = 24 * 60 * 60 * 1000;
+
+// Fallback version info when API fails
+const FALLBACK_VERSION_INFO: VersionInfo = {
+  version: '1.3.0',
+  commitCount: 150,
+  latestCommit: null,
+  commits: [],
+};
+
+// Load cache from localStorage
+function loadCacheFromStorage(): { data: VersionInfo | null; timestamp: number } {
+  try {
+    const cachedData = localStorage.getItem(CACHE_KEY);
+    const cachedTimestamp = localStorage.getItem(CACHE_TIMESTAMP_KEY);
+    
+    if (cachedData && cachedTimestamp) {
+      return {
+        data: JSON.parse(cachedData),
+        timestamp: parseInt(cachedTimestamp, 10),
+      };
+    }
+  } catch {
+    // Ignore localStorage errors
+  }
+  return { data: null, timestamp: 0 };
+}
+
+// Save cache to localStorage
+function saveCacheToStorage(data: VersionInfo): void {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+    localStorage.setItem(CACHE_TIMESTAMP_KEY, Date.now().toString());
+  } catch {
+    // Ignore localStorage errors (e.g., quota exceeded)
+  }
+}
 
 export async function getVersionInfo(): Promise<VersionInfo> {
-  // Return cached data if still valid
+  // First, check in-memory cache
   if (cachedVersionInfo && Date.now() - cacheTimestamp < CACHE_DURATION) {
     return cachedVersionInfo;
+  }
+
+  // Then, check localStorage cache
+  const storedCache = loadCacheFromStorage();
+  if (storedCache.data && Date.now() - storedCache.timestamp < CACHE_DURATION) {
+    // Update in-memory cache
+    cachedVersionInfo = storedCache.data;
+    cacheTimestamp = storedCache.timestamp;
+    return storedCache.data;
   }
 
   try {
@@ -39,7 +90,15 @@ export async function getVersionInfo(): Promise<VersionInfo> {
       }
     );
 
+    // Handle rate limiting or other errors
     if (!response.ok) {
+      // If we have stale cached data, use it instead of failing
+      if (storedCache.data) {
+        console.warn('GitHub API rate limited, using cached data');
+        cachedVersionInfo = storedCache.data;
+        cacheTimestamp = storedCache.timestamp;
+        return storedCache.data;
+      }
       throw new Error(`GitHub API error: ${response.status}`);
     }
 
@@ -81,7 +140,7 @@ export async function getVersionInfo(): Promise<VersionInfo> {
     }));
 
     // Generate version based on commit count
-    // Format: 1.x.y where x = commits / 100, y = commits % 100
+    // Format: 1.x.y where x = commits / 50, y = commits % 50
     const major = 1;
     const minor = Math.floor(totalCommits / 50);
     const patch = totalCommits % 50;
@@ -94,21 +153,21 @@ export async function getVersionInfo(): Promise<VersionInfo> {
       commits: mappedCommits,
     };
 
-    // Cache the result
+    // Cache the result in memory and localStorage
     cachedVersionInfo = versionInfo;
     cacheTimestamp = Date.now();
+    saveCacheToStorage(versionInfo);
 
     return versionInfo;
   } catch (error) {
     console.error('Error fetching version info:', error);
     
-    // Return fallback version info
-    return {
-      version: '1.0.0',
-      commitCount: 0,
-      latestCommit: null,
-      commits: [],
-    };
+    // Return stale cache if available, otherwise fallback
+    if (storedCache.data) {
+      return storedCache.data;
+    }
+    
+    return FALLBACK_VERSION_INFO;
   }
 }
 
