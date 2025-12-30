@@ -97,6 +97,87 @@ export async function uploadMultipleImages(
 }
 
 /**
+ * Upload image from external URL to Cloudinary
+ * Downloads the image first, then uploads it to Cloudinary
+ * @param imageUrl - External image URL to download and upload
+ * @param folder - Optional folder name for organization
+ * @returns Upload result with Cloudinary URL and public ID
+ */
+export async function uploadImageFromUrl(
+  imageUrl: string,
+  folder: string = 'ruangkopi-user-photos'
+): Promise<CloudinaryUploadResult> {
+  if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_UPLOAD_PRESET) {
+    return {
+      success: false,
+      error: 'Cloudinary belum dikonfigurasi. Silakan tambahkan VITE_CLOUDINARY_CLOUD_NAME dan VITE_CLOUDINARY_UPLOAD_PRESET di file .env'
+    };
+  }
+
+  try {
+    // First, fetch the image from the URL
+    const response = await fetch(imageUrl, {
+      mode: 'cors',
+      headers: {
+        'Accept': 'image/*'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch image: ${response.status} ${response.statusText}`);
+    }
+
+    // Get the content type
+    const contentType = response.headers.get('content-type') || 'image/jpeg';
+    
+    // Validate it's an image
+    if (!contentType.startsWith('image/')) {
+      throw new Error('URL bukan merupakan gambar yang valid');
+    }
+
+    // Convert to blob
+    const blob = await response.blob();
+    
+    // Check file size (max 10MB)
+    const maxSize = 10 * 1024 * 1024;
+    if (blob.size > maxSize) {
+      throw new Error('Ukuran gambar terlalu besar. Maksimal 10MB.');
+    }
+
+    // Extract filename from URL or use default
+    const urlParts = imageUrl.split('/');
+    let filename = urlParts[urlParts.length - 1].split('?')[0] || 'image';
+    
+    // Ensure filename has extension
+    if (!filename.includes('.')) {
+      const ext = contentType.split('/')[1]?.split(';')[0] || 'jpg';
+      filename = `${filename}.${ext}`;
+    }
+
+    // Create File object from blob
+    const file = new File([blob], filename, { type: contentType });
+
+    // Upload to Cloudinary using existing function
+    return await uploadImage(file, folder);
+  } catch (error) {
+    console.error('Error uploading image from URL:', error);
+    
+    // Handle CORS errors specifically
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      return {
+        success: false,
+        error: 'Gagal mengambil gambar. Server gambar tidak mengizinkan akses (CORS). Coba download gambar lalu upload secara manual.'
+      };
+    }
+    
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Gagal mengupload gambar dari URL',
+    };
+  }
+}
+
+/**
  * Get optimized image URL with transformations
  * @param url - Original Cloudinary URL
  * @param options - Transformation options
