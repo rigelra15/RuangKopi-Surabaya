@@ -8,5 +8,12 @@
       "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
+  ],
+  "redirects": [
+    {
+      "source": "/feedback",
+      "destination": "https://forms.gle/wKruzrLKLpCTwxMw6",
+      "permanent": false
+    }
   ]
 }
